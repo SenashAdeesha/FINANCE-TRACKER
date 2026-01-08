@@ -5,6 +5,7 @@ import Expenses from "./pages/Expenses";
 import Income from "./pages/Income";
 import Profile from "./pages/Profile";
 import TransactionsPage from "./pages/TransactionsPage";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/expenses" element={<Expenses />} />
         <Route path="/income" element={<Income />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/login" element={<Login />} />
       </Routes>
