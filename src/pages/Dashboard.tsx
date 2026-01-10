@@ -322,7 +322,7 @@ function Dashboard() {
               onClick={() => navigate('/expenses')}
             />
             <DashboardCard title="Balance" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaWallet />} color="bg-white" />
-            <DashboardCard title="Savings %" amount={`${stats.savingsRate}%`} icon={<FaPiggyBank />} color="bg-white" />
+            <DashboardCard title="Savings" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaPiggyBank />} color="bg-white" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
