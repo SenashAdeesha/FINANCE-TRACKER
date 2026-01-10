@@ -1,6 +1,6 @@
 // components/Sidebar.tsx
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaMoneyBillWave, FaWallet, FaUser, FaSignInAlt, FaCog } from "react-icons/fa";
+import { FaHome, FaMoneyBillWave, FaWallet, FaPiggyBank, FaUser, FaSignInAlt, FaCog } from "react-icons/fa";
 
 function Sidebar({ isOpen }: { isOpen: boolean }) {
   const location = useLocation();
@@ -9,6 +9,7 @@ function Sidebar({ isOpen }: { isOpen: boolean }) {
     { path: "/", icon: <FaHome />, label: "Dashboard" },
     { path: "/income", icon: <FaMoneyBillWave />, label: "Income" },
     { path: "/expenses", icon: <FaWallet />, label: "Expenses" },
+    { path: "/savings", icon: <FaPiggyBank />, label: "Savings" },
     { path: "/profile", icon: <FaUser />, label: "Profile" },
     { path: "/settings", icon: <FaCog />, label: "Settings" },
     { path: "/login", icon: <FaSignInAlt />, label: "Login" },
