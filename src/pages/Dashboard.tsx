@@ -24,26 +24,26 @@ const mockTransactions = [
 function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [step, setStep] = useState<'select' | 'income' | 'expense'>('select');
   const [formData, setFormData] = useState<{
-    title: string;
     amount: string;
     date: string;
     category: string;
+    recurring: boolean;
     description: string;
   }>({
-    title: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category: '',
+    recurring: false,
     description: ''
   });
 
   const handleClose = () => {
     setStep('select');
     setFormData({
-      title: '',
       amount: '',
       date: new Date().toISOString().split('T')[0],
       category: '',
+      recurring: false,
       description: ''
     });
     onClose();
@@ -59,9 +59,10 @@ function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
+    const { name, value, type } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     });
   };
 
@@ -129,16 +130,19 @@ function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               {/* Form */}
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
                     onChange={handleChange}
                     required
-                    placeholder={step === 'income' ? 'e.g., Salary' : 'e.g., Grocery Shopping'}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                  >
+                    <option value="">Select a category</option>
+                    {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -170,19 +174,16 @@ function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                  >
-                    <option value="">Select a category</option>
-                    {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="recurring"
+                      checked={formData.recurring}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Recurring Payment</span>
+                  </label>
                 </div>
 
                 <div>
