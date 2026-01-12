@@ -286,12 +286,12 @@ app.get("/api/expenses", async (req, res) => {
 // Create new expense
 app.post("/api/expenses", async (req, res) => {
     try {
-        const { category_id, amount, description, date } = req.body;
+        const { category_id, amount, description, date, recurring } = req.body;
         const result = await pool.query(
-            `INSERT INTO expenses (user_id, category_id, amount, description, date)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO expenses (user_id, category_id, amount, description, date, recurring)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [1, category_id, amount, description, date]
+            [1, category_id, amount, description, date, recurring || false]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -304,13 +304,13 @@ app.post("/api/expenses", async (req, res) => {
 app.put("/api/expenses/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { category_id, amount, description, date } = req.body;
+        const { category_id, amount, description, date, recurring } = req.body;
         const result = await pool.query(
             `UPDATE expenses 
-             SET category_id = $1, amount = $2, description = $3, date = $4, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $5
+             SET category_id = $1, amount = $2, description = $3, date = $4, recurring = $5, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $6
              RETURNING *`,
-            [category_id, amount, description, date, id]
+            [category_id, amount, description, date, recurring !== undefined ? recurring : false, id]
         );
         res.json(result.rows[0]);
     } catch (error) {
