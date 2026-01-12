@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type MouseEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
@@ -6,7 +6,9 @@ import DashboardCard from "../components/DashboardCard";
 import IncomeExpensesChart from "../components/IncomeExpensesChart";
 import { FaMoneyBillWave, FaShoppingCart, FaWallet, FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye } from "react-icons/fa";
 
-// Mock transaction data
+const API_BASE_URL = 'http://localhost:3001/api';
+
+// Mock transaction data (kept for fallback)
 const mockTransactions = [
   { id: 1, title: 'Salary', amount: 120000, date: '2026-01-05', type: 'income' },
   { id: 2, title: 'Grocery', amount: -5400, date: '2026-01-03', type: 'expense' },
@@ -219,11 +221,40 @@ function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [timePeriod, setTimePeriod] = useState('1 month');
   const [transactionFilter, setTransactionFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [incomeData, setIncomeData] = useState<any[]>([]);
+  const [expensesData, setExpensesData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch income and expenses data
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [incomeRes, expensesRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/income`),
+        fetch(`${API_BASE_URL}/expenses`)
+      ]);
+      
+      if (incomeRes.ok && expensesRes.ok) {
+        const income = await incomeRes.json();
+        const expenses = await expensesRes.json();
+        setIncomeData(income);
+        setExpensesData(expenses);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate stats based on time period
   const calculateStats = () => {
-    const now = new Date('2026-01-10');
+    const now = new Date();
     const monthsMap: Record<string, number> = {
       '1 month': 1,
       '2 months': 2,
@@ -241,10 +272,12 @@ function Dashboard() {
     const cutoffDate = new Date(now);
     cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
 
-    const filteredTxns = mockTransactions.filter(t => new Date(t.date) >= cutoffDate);
+    // Filter income and expenses by date
+    const filteredIncome = incomeData.filter(t => new Date(t.date) >= cutoffDate);
+    const filteredExpenses = expensesData.filter(t => new Date(t.date) >= cutoffDate);
     
-    const income = filteredTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const expenses = Math.abs(filteredTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0));
+    const income = filteredIncome.reduce((sum, t) => sum + Number(t.amount), 0);
+    const expenses = filteredExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
     const balance = income - expenses;
     const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
@@ -253,10 +286,27 @@ function Dashboard() {
 
   const stats = calculateStats();
 
-  // Filter transactions for display
+  // Combine and filter transactions for display
   const getFilteredTransactions = () => {
-    if (transactionFilter === 'all') return mockTransactions;
-    return mockTransactions.filter(t => t.type === transactionFilter);
+    const allTransactions = [
+      ...incomeData.map(t => ({ 
+        id: `income-${t.id}`, 
+        title: t.description || t.category_name || 'Income', 
+        amount: Number(t.amount), 
+        date: t.date, 
+        type: 'income' as const 
+      })),
+      ...expensesData.map(t => ({ 
+        id: `expense-${t.id}`, 
+        title: t.description || t.category_name || 'Expense', 
+        amount: -Number(t.amount), 
+        date: t.date, 
+        type: 'expense' as const 
+      }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    if (transactionFilter === 'all') return allTransactions;
+    return allTransactions.filter(t => t.type === transactionFilter);
   };
 
   return (
