@@ -329,6 +329,8 @@ function Income() {
   // Calculate income based on time period
   const calculateIncome = () => {
     const now = new Date();
+    now.setHours(23, 59, 59, 999); // End of today
+    
     const monthsMap: Record<string, number> = {
       '1 month': 1,
       '2 months': 2,
@@ -343,10 +345,19 @@ function Income() {
     };
 
     const monthsBack = monthsMap[timePeriod] || 1;
+    
+    if (timePeriod === 'All time') {
+      return incomeData;
+    }
+    
     const cutoffDate = new Date(now);
     cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+    cutoffDate.setHours(0, 0, 0, 0); // Start of that day
 
-    return incomeData.filter(item => new Date(item.date) >= cutoffDate);
+    return incomeData.filter(item => {
+      const itemDate = new Date(item.date);
+      return itemDate >= cutoffDate && itemDate <= now;
+    });
   };
 
   const filteredByTime = calculateIncome();
@@ -449,7 +460,12 @@ function Income() {
             <div className="lg:col-span-2 bg-white rounded-lg shadow">
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Recent Income</h2>
+                  <div>
+                    <h2 className="text-lg font-semibold">Recent Income</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Showing {filteredIncome.length} of {incomeData.length} total records
+                    </p>
+                  </div>
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-gray-700">Filter:</label>
                     <div className="relative inline-block">
@@ -474,7 +490,17 @@ function Income() {
                 {loading ? (
                   <div className="text-center py-8 text-gray-500">Loading income data...</div>
                 ) : filteredIncome.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No income records found</div>
+                  <div className="text-center py-8">
+                    <div className="text-gray-500 mb-2">No income records found for this period</div>
+                    {incomeData.length > 0 && filteredByTime.length === 0 && (
+                      <div className="text-sm text-gray-400">
+                        Try selecting a longer time period to see {incomeData.length} total record{incomeData.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                    {incomeData.length === 0 && (
+                      <div className="text-sm text-gray-400">Click "Add Income" to create your first record</div>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {filteredIncome.map((income) => (
