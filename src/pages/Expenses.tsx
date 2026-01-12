@@ -386,7 +386,7 @@ function Expense() {
   const categoryBreakdown = categories.map(cat => {
     const categoryTotal = filteredByTime
       .filter(item => item.category_id === cat.id)
-      .reduce((sum, item) => sum + parseFloat(item.amount), 0);
+      .reduce((sum, item) => sum + parseFloat(String(item.amount)), 0);
     return { ...cat, amount: categoryTotal };
   }).filter(cat => cat.amount > 0).sort((a, b) => b.amount - a.amount);
 
