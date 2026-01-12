@@ -1,11 +1,47 @@
 // pages/Income.tsx
-import { useState, type ChangeEvent, type MouseEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown } from "react-icons/fa";
 
+const API_BASE_URL = 'http://localhost:3001/api';
+
+// Types
+interface Category {
+  id: number;
+  name: string;
+  type: 'income' | 'expense';
+  icon: string;
+  color: string;
+}
+
+interface Income {
+  id: number;
+  user_id: number;
+  category_id: number;
+  amount: number;
+  description: string;
+  date: string;
+  recurring: boolean;
+  created_at?: string;
+  category_name?: string;
+  category_icon?: string;
+}
+
 // Income Modal Component
-function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function IncomeModal({ 
+  isOpen, 
+  onClose,
+  editingIncome,
+  categories,
+  onSubmit
+}: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  editingIncome: Income | null;
+  categories: Category[];
+  onSubmit: (data: any) => Promise<void>;
+}) {
   const [formData, setFormData] = useState({
     amount: '',
     date: new Date().toISOString().split('T')[0],
@@ -13,6 +49,27 @@ function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
     recurring: false,
     description: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (editingIncome) {
+      setFormData({
+        amount: editingIncome.amount.toString(),
+        date: editingIncome.date.split('T')[0],
+        category: editingIncome.category_id.toString(),
+        recurring: editingIncome.recurring,
+        description: editingIncome.description || ''
+      });
+    } else if (isOpen) {
+      setFormData({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        category: '',
+        recurring: false,
+        description: ''
+      });
+    }
+  }, [editingIncome, isOpen]);
 
   const handleClose = () => {
     setFormData({
@@ -25,11 +82,30 @@ function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
     onClose();
   };
 
-  const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('Income submitted:', formData);
-    alert('Income added successfully!');
-    handleClose();
+    
+    if (!formData.amount || !formData.category || !formData.date) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        category_id: parseInt(formData.category),
+        amount: parseFloat(formData.amount),
+        description: formData.description,
+        date: formData.date,
+        recurring: formData.recurring
+      });
+      handleClose();
+    } catch (error) {
+      console.error('Error submitting income:', error);
+      alert('Failed to save income. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -39,8 +115,6 @@ function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     });
   };
-
-  const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Business', 'Rental', 'Gift', 'Other'];
 
   if (!isOpen) return null;
 
@@ -66,8 +140,8 @@ function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
               >
                 <option value="">Select a category</option>
-                {incomeCategories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
                 ))}
               </select>
             </div>
@@ -126,9 +200,21 @@ function IncomeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
-              <button type="button" onClick={handleSubmit} className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700">
-                Add Income
+              <button 
+                type="button" 
+                onClick={handleClose} 
+                className="px-4 py-2 border rounded-md"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSubmit} 
+                className="px-4 py-2 rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : editingIncome ? 'Update Income' : 'Add Income'}
               </button>
             </div>
           </form>
@@ -143,24 +229,106 @@ function Income() {
   const [modalOpen, setModalOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [timePeriod, setTimePeriod] = useState('1 month');
+  const [incomeData, setIncomeData] = useState<Income[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
 
-  const incomeData = [
-    { id: 1, source: "Salary", amount: 85000, date: "2026-01-01", category: "Salary", recurring: true },
-    { id: 2, source: "Freelance Project", amount: 25000, date: "2026-01-05", category: "Freelance", recurring: false },
-    { id: 3, source: "Investment Returns", amount: 8000, date: "2026-01-10", category: "Investment", recurring: false },
-    { id: 4, source: "Rental Income", amount: 15000, date: "2026-01-01", category: "Rental", recurring: true },
-  ];
+  // Fetch categories
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  const categories = [
-    { name: "Salary", amount: 85000, color: "bg-blue-500" },
-    { name: "Freelance", amount: 25000, color: "bg-green-500" },
-    { name: "Investment", amount: 8000, color: "bg-purple-500" },
-    { name: "Rental", amount: 15000, color: "bg-yellow-500" },
-  ];
+  // Fetch income data
+  useEffect(() => {
+    fetchIncome();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories/income`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      alert('Failed to load categories');
+    }
+  };
+
+  const fetchIncome = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/income`);
+      if (!response.ok) throw new Error('Failed to fetch income');
+      const data = await response.json();
+      setIncomeData(data);
+    } catch (error) {
+      console.error('Error fetching income:', error);
+      alert('Failed to load income data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (data: any) => {
+    if (editingIncome) {
+      // Update existing income
+      const response = await fetch(`${API_BASE_URL}/income/${editingIncome.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update income');
+    } else {
+      // Create new income
+      const response = await fetch(`${API_BASE_URL}/income`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, user_id: 1 }) // Using demo user
+      });
+      if (!response.ok) throw new Error('Failed to create income');
+    }
+    await fetchIncome();
+    setEditingIncome(null);
+  };
+
+  const handleEdit = (income: Income) => {
+    setEditingIncome(income);
+    setModalOpen(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this income?')) return;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/income/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete income');
+      await fetchIncome();
+    } catch (error) {
+      console.error('Error deleting income:', error);
+      alert('Failed to delete income');
+    }
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEditingIncome(null);
+  };
+
+  // OLD CODE - REMOVED
+  // const incomeData = [
+  //   { id: 1, source: "Salary", amount: 85000, date: "2026-01-01", category: "Salary", recurring: true },
+  //   { id: 2, source: "Freelance Project", amount: 25000, date: "2026-01-05", category: "Freelance", recurring: false },
+  //   { id: 3, source: "Investment Returns", amount: 8000, date: "2026-01-10", category: "Investment", recurring: false },
+  //   { id: 4, source: "Rental Income", amount: 15000, date: "2026-01-01", category: "Rental", recurring: true },
+  // ];
 
   // Calculate income based on time period
   const calculateIncome = () => {
-    const now = new Date('2026-01-10');
+    const now = new Date();
     const monthsMap: Record<string, number> = {
       '1 month': 1,
       '2 months': 2,
@@ -182,12 +350,24 @@ function Income() {
   };
 
   const filteredByTime = calculateIncome();
-  const totalIncome = filteredByTime.reduce((sum, item) => sum + item.amount, 0);
+  const totalIncome = filteredByTime.reduce((sum, item) => sum + Number(item.amount), 0);
+  const recurringIncome = filteredByTime.filter(item => item.recurring).reduce((sum, item) => sum + Number(item.amount), 0);
+  const oneTimeIncome = filteredByTime.filter(item => !item.recurring).reduce((sum, item) => sum + Number(item.amount), 0);
+
+  // Calculate category breakdown
+  const categoryBreakdown = categories.map(cat => {
+    const categoryTotal = filteredByTime
+      .filter(item => item.category_id === cat.id)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    return { ...cat, amount: categoryTotal };
+  }).filter(cat => cat.amount > 0);
 
   // Filter income data by category
   const getFilteredIncome = () => {
     if (categoryFilter === 'All') return filteredByTime;
-    return filteredByTime.filter(item => item.category === categoryFilter);
+    const selectedCategory = categories.find(c => c.name === categoryFilter);
+    if (!selectedCategory) return filteredByTime;
+    return filteredByTime.filter(item => item.category_id === selectedCategory.id);
   };
 
   const filteredIncome = getFilteredIncome();
@@ -247,21 +427,21 @@ function Income() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm text-gray-600 mb-2">Total Income (This Month)</h3>
+              <h3 className="text-sm text-gray-600 mb-2">Total Income ({timePeriod})</h3>
               <div className="text-3xl font-bold text-green-600">Rs. {totalIncome.toLocaleString()}</div>
-              <div className="text-xs text-green-600 mt-1">↑ 15% from last month</div>
+              <div className="text-xs text-gray-600 mt-1">{filteredByTime.length} transactions</div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-sm text-gray-600 mb-2">Recurring Income</h3>
-              <div className="text-3xl font-bold">Rs. 100,000</div>
-              <div className="text-xs text-gray-600 mt-1">Monthly average</div>
+              <div className="text-3xl font-bold">Rs. {recurringIncome.toLocaleString()}</div>
+              <div className="text-xs text-gray-600 mt-1">From recurring sources</div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-sm text-gray-600 mb-2">One-time Income</h3>
-              <div className="text-3xl font-bold">Rs. 33,000</div>
-              <div className="text-xs text-gray-600 mt-1">This month</div>
+              <div className="text-3xl font-bold">Rs. {oneTimeIncome.toLocaleString()}</div>
+              <div className="text-xs text-gray-600 mt-1">From one-time sources</div>
             </div>
           </div>
 
@@ -279,13 +459,9 @@ function Income() {
                         className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 cursor-pointer shadow-sm"
                       >
                         <option value="All">All Categories</option>
-                        <option value="Salary">Salary</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Investment">Investment</option>
-                        <option value="Business">Business</option>
-                        <option value="Rental">Rental</option>
-                        <option value="Gift">Gift</option>
-                        <option value="Other">Other</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))}
                       </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                         <FaChevronDown size={12} />
@@ -295,64 +471,88 @@ function Income() {
                 </div>
               </div>
               <div className="p-6">
-                <div className="space-y-3">
-                  {filteredIncome.map((income) => (
-                    <div key={income.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <div className="font-medium">{income.source}</div>
-                          {income.recurring && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded">Recurring</span>
-                          )}
+                {loading ? (
+                  <div className="text-center py-8 text-gray-500">Loading income data...</div>
+                ) : filteredIncome.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">No income records found</div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredIncome.map((income) => (
+                      <div key={income.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <div className="font-medium">{income.category_icon} {income.description || income.category_name}</div>
+                            {income.recurring && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded">Recurring</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {income.category_name} • {new Date(income.date).toLocaleDateString()}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {income.category} • {new Date(income.date).toLocaleDateString()}
+                        <div className="flex items-center gap-4">
+                          <div className="text-lg font-semibold text-green-600">+Rs. {Number(income.amount).toLocaleString()}</div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => handleEdit(income)}
+                              className="p-2 hover:bg-gray-200 rounded"
+                            >
+                              <FaEdit className="text-gray-600" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(income.id)}
+                              className="p-2 hover:bg-red-100 rounded"
+                            >
+                              <FaTrash className="text-red-600" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-lg font-semibold text-green-600">+Rs. {income.amount.toLocaleString()}</div>
-                        <div className="flex gap-2">
-                          <button className="p-2 hover:bg-gray-200 rounded">
-                            <FaEdit className="text-gray-600" />
-                          </button>
-                          <button className="p-2 hover:bg-red-100 rounded">
-                            <FaTrash className="text-red-600" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4">Income by Category</h2>
-              <div className="space-y-4">
-                {categories.map((cat) => {
-                  const percentage = (cat.amount / totalIncome) * 100;
-                  return (
-                    <div key={cat.name}>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-sm font-medium">{cat.name}</span>
-                        <span className="text-sm text-gray-600">{percentage.toFixed(0)}%</span>
+              {loading ? (
+                <div className="text-center py-4 text-gray-500">Loading...</div>
+              ) : categoryBreakdown.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">No income data available</div>
+              ) : (
+                <div className="space-y-4">
+                  {categoryBreakdown.map((cat) => {
+                    const percentage = totalIncome > 0 ? (cat.amount / totalIncome) * 100 : 0;
+                    return (
+                      <div key={cat.id}>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium">{cat.icon} {cat.name}</span>
+                          <span className="text-sm text-gray-600">{percentage.toFixed(0)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="h-2 rounded-full" style={{ width: `${percentage}%`, backgroundColor: cat.color }}></div>
+                        </div>
+                        <div className="text-right mt-1">
+                          <span className="text-sm font-semibold">Rs. {cat.amount.toLocaleString()}</span>
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className={`${cat.color} h-2 rounded-full`} style={{ width: `${percentage}%` }}></div>
-                      </div>
-                      <div className="text-right mt-1">
-                        <span className="text-sm font-semibold">Rs. {cat.amount.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </main>
       </div>
 
-      <IncomeModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <IncomeModal 
+        isOpen={modalOpen} 
+        onClose={handleModalClose}
+        editingIncome={editingIncome}
+        categories={categories}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

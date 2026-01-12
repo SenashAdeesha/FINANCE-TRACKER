@@ -314,10 +314,10 @@ function Settings() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <FaGlobe className="text-gray-400" />
                             Currency
-                          </label>
+                          </div>
                           <select
                             name="currency"
                             value={formData.currency}
@@ -334,10 +334,10 @@ function Settings() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <FaGlobe className="text-gray-400" />
                             Language
-                          </label>
+                          </div>
                           <select
                             name="language"
                             value={formData.language}
@@ -353,10 +353,10 @@ function Settings() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <FaClock className="text-gray-400" />
                             Date Format
-                          </label>
+                          </div>
                           <select
                             name="dateFormat"
                             value={formData.dateFormat}
@@ -371,10 +371,10 @@ function Settings() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <FaClock className="text-gray-400" />
                             Timezone
-                          </label>
+                          </div>
                           <select
                             name="timezone"
                             value={formData.timezone}
