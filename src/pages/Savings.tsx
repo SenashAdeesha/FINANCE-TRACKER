@@ -251,6 +251,8 @@ function Savings() {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [timePeriod, setTimePeriod] = useState('1 month');
+  const [filterMode, setFilterMode] = useState<'period' | 'month'>('period');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const [savingsData, setSavingsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -299,27 +301,53 @@ function Savings() {
     setEditingEntry(null);
   };
 
-  // Calculate based on time period
+  // Calculate based on time period or calendar month
   const calculateData = () => {
-    const now = new Date('2026-01-10');
-    const monthsMap: Record<string, number> = {
-      '1 month': 1,
-      '2 months': 2,
-      '3 months': 3,
-      '6 months': 6,
-      '1 year': 12,
-      '2 years': 24,
-      '3 years': 36,
-      '4 years': 48,
-      '5 years': 60,
-      'All time': 9999
-    };
+    if (filterMode === 'month') {
+      // Filter by specific calendar month (1st to last day)
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const startOfMonth = new Date(year, month - 1, 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(year, month, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      return savingsData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startOfMonth && itemDate <= endOfMonth;
+      });
+    } else {
+      // Filter by rolling time period
+      const now = new Date();
+      now.setHours(23, 59, 59, 999); // End of today
+      
+      const monthsMap: Record<string, number> = {
+        '1 month': 1,
+        '2 months': 2,
+        '3 months': 3,
+        '6 months': 6,
+        '1 year': 12,
+        '2 years': 24,
+        '3 years': 36,
+        '4 years': 48,
+        '5 years': 60,
+        'All time': 9999
+      };
 
-    const monthsBack = monthsMap[timePeriod] || 1;
-    const cutoffDate = new Date(now);
-    cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+      const monthsBack = monthsMap[timePeriod] || 1;
+      
+      if (timePeriod === 'All time') {
+        return savingsData;
+      }
+      
+      const cutoffDate = new Date(now);
+      cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+      cutoffDate.setHours(0, 0, 0, 0); // Start of that day
 
-    return savingsData.filter(item => new Date(item.date) >= cutoffDate);
+      return savingsData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= cutoffDate && itemDate <= now;
+      });
+    }
   };
 
   const filteredByTime = calculateData();
@@ -388,43 +416,87 @@ function Savings() {
             </button>
           </div>
 
-          {/* Time Period Filter (Dropdown Style) */}
+          {/* Time Period Filter */}
           <div className="bg-white rounded-lg p-4 shadow mb-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Time Period</h3>
-              <div className="relative inline-block">
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
-                >
-                  <optgroup label="Months">
-                    <option value="1 month">Last 1 Month</option>
-                    <option value="2 months">Last 2 Months</option>
-                    <option value="3 months">Last 3 Months</option>
-                    <option value="6 months">Last 6 Months</option>
-                  </optgroup>
-                  <optgroup label="Years">
-                    <option value="1 year">Last 1 Year</option>
-                    <option value="2 years">Last 2 Years</option>
-                    <option value="3 years">Last 3 Years</option>
-                    <option value="4 years">Last 4 Years</option>
-                    <option value="5 years">Last 5 Years</option>
-                  </optgroup>
-                  <optgroup label="Other">
-                    <option value="All time">All Time</option>
-                  </optgroup>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                  <FaChevronDown size={12} />
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h3 className="font-semibold text-lg">Filter By</h3>
+              
+              <div className="flex items-center gap-4">
+                {/* Filter Mode Toggle */}
+                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setFilterMode('period')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      filterMode === 'period' 
+                        ? 'bg-purple-600 text-white shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Time Period
+                  </button>
+                  <button
+                    onClick={() => setFilterMode('month')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      filterMode === 'month' 
+                        ? 'bg-purple-600 text-white shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Calendar Month
+                  </button>
                 </div>
+
+                {/* Period Selector */}
+                {filterMode === 'period' ? (
+                  <div className="relative inline-block">
+                    <select
+                      value={timePeriod}
+                      onChange={(e) => setTimePeriod(e.target.value)}
+                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-sm"
+                    >
+                      <optgroup label="Months">
+                        <option value="1 month">Last 1 Month</option>
+                        <option value="2 months">Last 2 Months</option>
+                        <option value="3 months">Last 3 Months</option>
+                        <option value="6 months">Last 6 Months</option>
+                      </optgroup>
+                      <optgroup label="Years">
+                        <option value="1 year">Last 1 Year</option>
+                        <option value="2 years">Last 2 Years</option>
+                        <option value="3 years">Last 3 Years</option>
+                        <option value="4 years">Last 4 Years</option>
+                        <option value="5 years">Last 5 Years</option>
+                      </optgroup>
+                      <optgroup label="Other">
+                        <option value="All time">All Time</option>
+                      </optgroup>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                      <FaChevronDown size={12} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative inline-block">
+                    <input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      max={new Date().toISOString().slice(0, 7)}
+                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-sm"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm text-gray-600 mb-2">Total Amount</h3>
+              <h3 className="text-sm text-gray-600 mb-2">
+                Total Amount ({filterMode === 'month' 
+                  ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                  : timePeriod})
+              </h3>
               <div className="text-3xl font-bold text-green-600">Rs. {totalAmount.toLocaleString()}</div>
               <div className="text-xs text-gray-600 mt-1">Combined savings & investments</div>
             </div>
