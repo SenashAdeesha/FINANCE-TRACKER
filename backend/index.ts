@@ -397,6 +397,76 @@ app.post("/api/budgets", async (req, res) => {
     }
 });
 
+// ============= SAVINGS & INVESTMENTS API =============
+// Get all savings and investments
+app.get("/api/savings-investments", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * FROM savings
+            ORDER BY date DESC, created_at DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching savings/investments:", error);
+        res.status(500).json({ error: "Failed to fetch savings/investments" });
+    }
+});
+
+// Create new savings or investment
+app.post("/api/savings-investments", async (req, res) => {
+    try {
+        const { type, category, amount, description, date, recurring } = req.body;
+        const result = await pool.query(
+            `INSERT INTO savings (user_id, type, category, amount, description, date, recurring)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING *`,
+            [1, type, category, amount, description, date, recurring || false]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error("Error creating savings/investment:", error);
+        res.status(500).json({ error: "Failed to create savings/investment" });
+    }
+});
+
+// Update savings or investment
+app.put("/api/savings-investments/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { type, category, amount, description, date, recurring } = req.body;
+        const result = await pool.query(
+            `UPDATE savings 
+             SET type = $1, category = $2, amount = $3, description = $4, 
+                 date = $5, recurring = $6, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $7
+             RETURNING *`,
+            [type, category, amount, description, date, recurring, id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Savings/Investment not found" });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating savings/investment:", error);
+        res.status(500).json({ error: "Failed to update savings/investment" });
+    }
+});
+
+// Delete savings or investment
+app.delete("/api/savings-investments/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query("DELETE FROM savings WHERE id = $1 RETURNING *", [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Savings/Investment not found" });
+        }
+        res.json({ message: "Savings/Investment deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting savings/investment:", error);
+        res.status(500).json({ error: "Failed to delete savings/investment" });
+    }
+});
+
 // ============= SAVINGS GOALS API =============
 // Get all savings goals
 app.get("/api/savings", async (req, res) => {

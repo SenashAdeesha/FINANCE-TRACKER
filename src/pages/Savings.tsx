@@ -1,11 +1,13 @@
 // pages/Savings.tsx
-import { useState, type ChangeEvent, type MouseEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaPiggyBank, FaChartLine } from "react-icons/fa";
 
+const API_BASE_URL = 'http://localhost:3001/api';
+
 // Savings Modal Component
-function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
   const [step, setStep] = useState<'select' | 'savings' | 'investment'>('select');
   const [formData, setFormData] = useState({
     amount: '',
@@ -27,11 +29,40 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     onClose();
   };
 
-  const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('Savings submitted:', { ...formData, type: step });
-    alert(`${step === 'savings' ? 'Savings' : 'Investment'} added successfully!`);
-    handleClose();
+    
+    if (!formData.amount || !formData.category) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/savings-investments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1,
+          type: step,
+          category: formData.category,
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          date: formData.date,
+          recurring: formData.recurring
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add ${step}`);
+      }
+
+      alert(`${step === 'savings' ? 'Savings' : 'Investment'} added successfully!`);
+      handleClose();
+      onSuccess();
+    } catch (error) {
+      console.error('Error adding entry:', error);
+      alert(`Failed to add ${step}. Please try again.`);
+    }
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -199,15 +230,43 @@ function Savings() {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [timePeriod, setTimePeriod] = useState('1 month');
+  const [savingsData, setSavingsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const savingsData = [
-    { id: 1, description: "Emergency Fund Deposit", amount: 20000, date: "2026-01-08", category: "Emergency Fund", type: "savings", recurring: true },
-    { id: 2, description: "Vacation Savings", amount: 15000, date: "2026-01-05", category: "Vacation", type: "savings", recurring: false },
-    { id: 3, description: "Mutual Fund SIP", amount: 10000, date: "2026-01-01", category: "Mutual Funds", type: "investment", recurring: true },
-    { id: 4, description: "Stock Purchase", amount: 25000, date: "2026-01-03", category: "Stocks", type: "investment", recurring: false },
-    { id: 5, description: "Gold Investment", amount: 30000, date: "2026-01-07", category: "Gold", type: "investment", recurring: false },
-    { id: 6, description: "Retirement Fund", amount: 50000, date: "2026-01-01", category: "Retirement", type: "savings", recurring: true },
-  ];
+  // Fetch data from API
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/savings-investments`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+      const data = await response.json();
+      setSavingsData(data);
+    } catch (error) {
+      console.error('Error fetching savings/investments:', error);
+      alert('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/savings-investments/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      alert('Failed to delete entry');
+    }
+  };
 
   const savingsCategories = [
     { name: "Emergency Fund", amount: 20000, color: "bg-blue-500", type: "savings" },
@@ -259,8 +318,8 @@ function Savings() {
 
   const filteredData = getFilteredData();
 
-  const totalSavings = filteredByTime.filter(item => item.type === 'savings').reduce((sum, item) => sum + item.amount, 0);
-  const totalInvestments = filteredByTime.filter(item => item.type === 'investment').reduce((sum, item) => sum + item.amount, 0);
+  const totalSavings = filteredByTime.filter(item => item.type === 'savings').reduce((sum, item) => sum + Number(item.amount), 0);
+  const totalInvestments = filteredByTime.filter(item => item.type === 'investment').reduce((sum, item) => sum + Number(item.amount), 0);
   const totalAmount = totalSavings + totalInvestments;
 
   return (
@@ -428,13 +487,13 @@ function Savings() {
                         <div className={`text-lg font-semibold ${
                           item.type === 'savings' ? 'text-blue-600' : 'text-purple-600'
                         }`}>
-                          +Rs. {item.amount.toLocaleString()}
+                          +Rs. {Number(item.amount).toLocaleString()}
                         </div>
                         <div className="flex gap-2">
                           <button className="p-2 hover:bg-gray-200 rounded">
                             <FaEdit className="text-gray-600" />
                           </button>
-                          <button className="p-2 hover:bg-red-100 rounded">
+                          <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-100 rounded">
                             <FaTrash className="text-red-600" />
                           </button>
                         </div>
@@ -498,7 +557,7 @@ function Savings() {
         </main>
       </div>
 
-      <SavingsModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <SavingsModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
     </div>
   );
 }
