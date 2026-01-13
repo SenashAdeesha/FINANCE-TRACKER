@@ -431,7 +431,7 @@ function Income() {
                     onClick={() => setFilterMode('period')}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                       filterMode === 'period' 
-                        ? 'bg-white text-gray-900 shadow-sm' 
+                        ? 'bg-green-600 text-white shadow-sm' 
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -441,7 +441,7 @@ function Income() {
                     onClick={() => setFilterMode('month')}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                       filterMode === 'month' 
-                        ? 'bg-white text-gray-900 shadow-sm' 
+                        ? 'bg-green-600 text-white shadow-sm' 
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
