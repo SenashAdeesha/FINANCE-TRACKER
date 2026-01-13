@@ -6,21 +6,21 @@ import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaPiggyBank, FaChartLi
 
 // Savings Modal Component
 function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [step, setStep] = useState<'select' | 'savings' | 'investment'>('select');
   const [formData, setFormData] = useState({
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category: '',
-    type: 'savings', // savings or investment
     recurring: false,
     description: ''
   });
 
   const handleClose = () => {
+    setStep('select');
     setFormData({
       amount: '',
       date: new Date().toISOString().split('T')[0],
       category: '',
-      type: 'savings',
       recurring: false,
       description: ''
     });
@@ -29,8 +29,8 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
   const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('Savings submitted:', formData);
-    alert(`${formData.type === 'savings' ? 'Savings' : 'Investment'} added successfully!`);
+    console.log('Savings submitted:', { ...formData, type: step });
+    alert(`${step === 'savings' ? 'Savings' : 'Investment'} added successfully!`);
     handleClose();
   };
 
@@ -45,7 +45,7 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
   const savingsCategories = ['Emergency Fund', 'Vacation', 'Home Down Payment', 'Car Purchase', 'Education', 'Retirement', 'General Savings', 'Other'];
   const investmentCategories = ['Stocks', 'Mutual Funds', 'Bonds', 'Real Estate', 'Cryptocurrency', 'Gold', 'Fixed Deposit', 'Other'];
 
-  const categories = formData.type === 'savings' ? savingsCategories : investmentCategories;
+  const categories = step === 'savings' ? savingsCategories : investmentCategories;
 
   if (!isOpen) return null;
 
@@ -53,28 +53,62 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Add {formData.type === 'savings' ? 'Savings' : 'Investment'}</h2>
+          <h2 className="text-lg font-semibold">Add {step === 'select' ? 'Entry' : (step === 'savings' ? 'Savings' : 'Investment')}</h2>
           <button onClick={handleClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">
             <FaTimes size={18} />
           </button>
         </div>
 
         <div className="p-6">
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-              >
-                <option value="savings">Savings</option>
-                <option value="investment">Investment</option>
-              </select>
+          {step === 'select' ? (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">Choose entry type to continue</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep('savings')}
+                  className="p-4 border rounded-md bg-blue-600 text-white hover:bg-blue-700 border-blue-600 shadow-sm flex items-center justify-center gap-2"
+                >
+                  <FaPiggyBank size={20} />
+                  <span>Savings</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep('investment')}
+                  className="p-4 border rounded-md bg-green-600 text-white hover:bg-green-700 border-green-600 shadow-sm flex items-center justify-center gap-2"
+                >
+                  <FaChartLine size={20} />
+                  <span>Investment</span>
+                </button>
+              </div>
+              <div className="flex justify-end">
+                <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
+              </div>
             </div>
+          ) : (
+            <>
+              {/* Type toggle */}
+              <div className="mb-4">
+                <div className="inline-flex rounded-md border bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => setStep('savings')}
+                    className={`px-4 py-2 text-sm font-medium rounded-l-md ${step === 'savings' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    Savings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('investment')}
+                    className={`px-4 py-2 text-sm font-medium rounded-r-md ${step === 'investment' ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    Investment
+                  </button>
+                </div>
+              </div>
 
+              {/* Form */}
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select
@@ -128,7 +162,7 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
                   onChange={handleChange}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm font-medium text-gray-700">Recurring {formData.type === 'savings' ? 'Savings' : 'Investment'}</span>
+                <span className="text-sm font-medium text-gray-700">Recurring {step === 'savings' ? 'Savings' : 'Investment'}</span>
               </label>
             </div>
 
@@ -146,11 +180,13 @@ function SavingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
             <div className="flex justify-end gap-3 pt-2">
               <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
-              <button type="button" onClick={handleSubmit} className="px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                Add {formData.type === 'savings' ? 'Savings' : 'Investment'}
+              <button type="button" onClick={handleSubmit} className={`px-4 py-2 rounded-md text-white ${step === 'savings' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}>
+                Add {step === 'savings' ? 'Savings' : 'Investment'}
               </button>
             </div>
           </form>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -282,6 +318,12 @@ function Savings() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-sm text-gray-600 mb-2">Total Amount</h3>
+              <div className="text-3xl font-bold text-green-600">Rs. {totalAmount.toLocaleString()}</div>
+              <div className="text-xs text-gray-600 mt-1">Combined savings & investments</div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center gap-3 mb-2">
                 <FaPiggyBank className="text-blue-600 text-xl" />
                 <h3 className="text-sm text-gray-600">Total Savings</h3>
@@ -297,12 +339,6 @@ function Savings() {
               </div>
               <div className="text-3xl font-bold text-purple-600">Rs. {totalInvestments.toLocaleString()}</div>
               <div className="text-xs text-purple-600 mt-1">↑ 18% from last period</div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm text-gray-600 mb-2">Total Amount</h3>
-              <div className="text-3xl font-bold text-green-600">Rs. {totalAmount.toLocaleString()}</div>
-              <div className="text-xs text-gray-600 mt-1">Combined savings & investments</div>
             </div>
           </div>
 
