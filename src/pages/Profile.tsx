@@ -29,9 +29,9 @@ function Profile() {
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Profile" />
 
-        <main className="p-6">
-          <div className="mb-6">
-            <Link to="/settings?tab=general" className="px-4 py-2 rounded bg-primary text-white flex items-center gap-2 hover:bg-primary/90 transition-colors">
+        <main className="p-8 max-w-7xl mx-auto">
+          <div className="flex justify-end mb-6">
+            <Link to="/settings?tab=general" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
               <FaEdit className="text-sm" />
               Edit Profile
             </Link>
@@ -39,7 +39,7 @@ function Profile() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
@@ -89,7 +89,7 @@ function Profile() {
             </div>
 
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold mb-4">Financial Overview</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {stats.map((stat) => (
@@ -104,7 +104,7 @@ function Profile() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
                 <div className="space-y-3">
                   {recentActivity.map((activity, index) => (
