@@ -408,7 +408,8 @@ function Income() {
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Income" />
 
         <main className="p-8 max-w-7xl mx-auto">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600 text-sm">Track and manage all your income sources</p>
             <button 
               onClick={() => setModalOpen(true)}
               className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"

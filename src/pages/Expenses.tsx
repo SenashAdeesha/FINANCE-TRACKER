@@ -408,7 +408,8 @@ function Expense() {
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Expenses" />
 
         <main className="p-8 max-w-7xl mx-auto">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600 text-sm">Monitor and categorize all your spending</p>
             <button 
               onClick={() => setModalOpen(true)}
               className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"

@@ -424,7 +424,8 @@ function Dashboard() {
 
         <main className="p-8 max-w-7xl mx-auto">
           {/* Header Actions */}
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600 text-sm">Overview of your financial status and recent activities</p>
             <button 
               onClick={() => setModalOpen(true)}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"

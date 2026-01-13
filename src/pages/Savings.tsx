@@ -405,7 +405,8 @@ function Savings() {
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Savings & Investments" />
 
         <main className="p-8 max-w-7xl mx-auto">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600 text-sm">Manage your savings goals and investment portfolio</p>
             <button 
               onClick={() => setModalOpen(true)}
               className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
