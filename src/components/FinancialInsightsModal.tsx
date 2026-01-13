@@ -1,4 +1,4 @@
-import { FaTimes, FaArrowUp, FaArrowDown, FaChartLine, FaExclamationTriangle, FaCheckCircle, FaLightbulb, FaTrophy, FaCalendarAlt } from "react-icons/fa";
+import { FaTimes, FaArrowUp, FaArrowDown, FaChartLine, FaExclamationTriangle, FaCheckCircle, FaLightbulb, FaTrophy, FaCalendarAlt, FaPiggyBank, FaBullseye } from "react-icons/fa";
 
 interface Transaction {
   id: string | number;
@@ -14,10 +14,13 @@ interface FinancialInsightsModalProps {
   onClose: () => void;
   incomeData: any[];
   expensesData: any[];
+  savingsInvestmentsData: any[];
+  savingsGoalsData: any[];
   totalIncome: number;
   totalExpenses: number;
   balance: number;
   savingsRate: number;
+  totalSavings: number;
 }
 
 function FinancialInsightsModal({
@@ -25,10 +28,13 @@ function FinancialInsightsModal({
   onClose,
   incomeData,
   expensesData,
+  savingsInvestmentsData,
+  savingsGoalsData,
   totalIncome,
   totalExpenses,
   balance,
-  savingsRate
+  savingsRate,
+  totalSavings
 }: FinancialInsightsModalProps) {
   if (!isOpen) return null;
 
@@ -43,6 +49,11 @@ function FinancialInsightsModal({
       avgExpense: 0,
       topIncomeCategory: null,
       topExpenseCategory: null,
+      highestSaving: null,
+      lowestSaving: null,
+      avgSaving: 0,
+      topSavingsCategory: null,
+      goalsProgress: [],
       recentTrend: '',
       savingsStatus: '',
       recommendations: []
@@ -96,6 +107,46 @@ function FinancialInsightsModal({
       });
       const topExpenseCat = Object.entries(expenseByCategory).sort((a, b) => b[1] - a[1])[0];
       insights.topExpenseCategory = { name: topExpenseCat[0], amount: topExpenseCat[1] };
+    }
+
+    // Savings & Investments analysis
+    if (savingsInvestmentsData.length > 0) {
+      const sortedSavings = [...savingsInvestmentsData].sort((a, b) => Number(b.amount) - Number(a.amount));
+      insights.highestSaving = {
+        amount: Number(sortedSavings[0].amount),
+        description: sortedSavings[0].description || sortedSavings[0].category || 'Savings',
+        type: sortedSavings[0].type || 'savings',
+        date: sortedSavings[0].date
+      };
+      insights.lowestSaving = {
+        amount: Number(sortedSavings[sortedSavings.length - 1].amount),
+        description: sortedSavings[sortedSavings.length - 1].description || sortedSavings[sortedSavings.length - 1].category || 'Savings',
+        type: sortedSavings[sortedSavings.length - 1].type || 'savings',
+        date: sortedSavings[sortedSavings.length - 1].date
+      };
+      insights.avgSaving = totalSavings / savingsInvestmentsData.length;
+
+      // Top savings category
+      const savingsByCategory: Record<string, number> = {};
+      savingsInvestmentsData.forEach(item => {
+        const cat = item.category || item.type || 'Uncategorized';
+        savingsByCategory[cat] = (savingsByCategory[cat] || 0) + Number(item.amount);
+      });
+      if (Object.keys(savingsByCategory).length > 0) {
+        const topSavingsCat = Object.entries(savingsByCategory).sort((a, b) => b[1] - a[1])[0];
+        insights.topSavingsCategory = { name: topSavingsCat[0], amount: topSavingsCat[1] };
+      }
+    }
+
+    // Savings Goals Progress
+    if (savingsGoalsData.length > 0) {
+      insights.goalsProgress = savingsGoalsData.map(goal => ({
+        name: goal.name,
+        target: Number(goal.target_amount),
+        current: Number(goal.current_amount || 0),
+        progress: goal.target_amount > 0 ? Math.round((Number(goal.current_amount || 0) / Number(goal.target_amount)) * 100) : 0,
+        deadline: goal.deadline
+      }));
     }
 
     // Recent trend (last 7 days vs previous 7 days)
@@ -173,6 +224,47 @@ function FinancialInsightsModal({
       });
     }
 
+    // Savings recommendations
+    if (totalSavings === 0 && totalIncome > 0) {
+      insights.recommendations.push({
+        type: 'warning',
+        text: 'You have no recorded savings or investments. Start building your financial security today!'
+      });
+    }
+
+    if (savingsInvestmentsData.length > 0 && insights.avgSaving > 0) {
+      insights.recommendations.push({
+        type: 'success',
+        text: `You're saving an average of Rs. ${Math.round(insights.avgSaving).toLocaleString()} per transaction. Keep it up!`
+      });
+    }
+
+    if (insights.goalsProgress.length === 0 && totalSavings > 0) {
+      insights.recommendations.push({
+        type: 'tip',
+        text: 'Set savings goals to track your progress and stay motivated!'
+      });
+    }
+
+    if (insights.goalsProgress.length > 0) {
+      const completedGoals = insights.goalsProgress.filter((g: any) => g.progress >= 100);
+      const nearCompletion = insights.goalsProgress.filter((g: any) => g.progress >= 80 && g.progress < 100);
+      
+      if (completedGoals.length > 0) {
+        insights.recommendations.push({
+          type: 'success',
+          text: `🎉 Congratulations! You've completed ${completedGoals.length} savings goal${completedGoals.length > 1 ? 's' : ''}!`
+        });
+      }
+      
+      if (nearCompletion.length > 0) {
+        insights.recommendations.push({
+          type: 'info',
+          text: `You're close! ${nearCompletion.length} goal${nearCompletion.length > 1 ? 's are' : ' is'} over 80% complete.`
+        });
+      }
+    }
+
     return insights;
   };
 
@@ -202,7 +294,7 @@ function FinancialInsightsModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-green-800">Total Income</span>
@@ -243,10 +335,21 @@ function FinancialInsightsModal({
                 Savings Rate: {savingsRate}%
               </p>
             </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-purple-800">Total Savings</span>
+                <FaPiggyBank className="text-purple-600" />
+              </div>
+              <p className="text-2xl font-bold text-purple-900">Rs. {totalSavings.toLocaleString()}</p>
+              <p className="text-xs text-purple-700 mt-1">
+                {savingsInvestmentsData.length} {savingsInvestmentsData.length === 1 ? 'entry' : 'entries'}
+              </p>
+            </div>
           </div>
 
           {/* Min/Max Analysis */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {/* Income Min/Max */}
             <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -312,7 +415,95 @@ function FinancialInsightsModal({
                 <p className="text-sm text-gray-500">No expense data available</p>
               )}
             </div>
+
+            {/* Savings Min/Max */}
+            <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <FaPiggyBank className="text-purple-600" />
+                Savings Analysis
+              </h3>
+              {insights.highestSaving ? (
+                <div className="space-y-3">
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <p className="text-xs text-purple-700 font-medium mb-1">HIGHEST SAVING</p>
+                    <p className="text-lg font-bold text-purple-900">Rs. {insights.highestSaving.amount.toLocaleString()}</p>
+                    <p className="text-sm text-purple-800">{insights.highestSaving.description}</p>
+                    <p className="text-xs text-purple-600 mt-1">📅 {new Date(insights.highestSaving.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-700 font-medium mb-1">LOWEST SAVING</p>
+                    <p className="text-lg font-bold text-gray-900">Rs. {insights.lowestSaving.amount.toLocaleString()}</p>
+                    <p className="text-sm text-gray-800">{insights.lowestSaving.description}</p>
+                    <p className="text-xs text-gray-600 mt-1">📅 {new Date(insights.lowestSaving.date).toLocaleDateString()}</p>
+                  </div>
+                  {insights.topSavingsCategory && (
+                    <div className="bg-indigo-50 rounded-lg p-3">
+                      <p className="text-xs text-indigo-700 font-medium mb-1">TOP SAVINGS TYPE</p>
+                      <p className="text-sm font-semibold text-indigo-900">{insights.topSavingsCategory.name}</p>
+                      <p className="text-lg font-bold text-indigo-900">Rs. {insights.topSavingsCategory.amount.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {insights.avgSaving > 0 && (
+                    <div className="bg-teal-50 rounded-lg p-3">
+                      <p className="text-xs text-teal-700 font-medium mb-1">AVERAGE SAVING</p>
+                      <p className="text-lg font-bold text-teal-900">Rs. {Math.round(insights.avgSaving).toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No savings data available</p>
+              )}
+            </div>
           </div>
+
+          {/* Savings Goals Progress */}
+          {insights.goalsProgress.length > 0 && (
+            <div className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <FaBullseye className="text-blue-600" />
+                Savings Goals Progress
+              </h3>
+              <div className="space-y-3">
+                {insights.goalsProgress.map((goal: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-800">{goal.name}</p>
+                        {goal.deadline && (
+                          <p className="text-xs text-gray-600 mt-0.5">
+                            Target: {new Date(goal.deadline).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-sm font-bold ${
+                        goal.progress >= 100 ? 'text-green-600' :
+                        goal.progress >= 75 ? 'text-blue-600' :
+                        goal.progress >= 50 ? 'text-yellow-600' :
+                        'text-gray-600'
+                      }`}>
+                        {goal.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                      <div 
+                        className={`h-2.5 rounded-full transition-all ${
+                          goal.progress >= 100 ? 'bg-green-600' :
+                          goal.progress >= 75 ? 'bg-blue-600' :
+                          goal.progress >= 50 ? 'bg-yellow-500' :
+                          'bg-gray-400'
+                        }`}
+                        style={{ width: `${Math.min(goal.progress, 100)}%` }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>Rs. {goal.current.toLocaleString()}</span>
+                      <span>Rs. {goal.target.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Trends & Status */}
           {insights.recentTrend && (

@@ -771,10 +771,13 @@ function Dashboard() {
         onClose={() => setInsightsModalOpen(false)}
         incomeData={incomeData}
         expensesData={expensesData}
+        savingsInvestmentsData={savingsInvestmentsData}
+        savingsGoalsData={savingsGoalsData}
         totalIncome={stats.income}
         totalExpenses={stats.expenses}
         balance={stats.balance}
         savingsRate={stats.savingsRate}
+        totalSavings={stats.totalSavings}
       />
     </div>
   );
