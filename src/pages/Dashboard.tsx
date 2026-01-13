@@ -23,39 +23,96 @@ const mockTransactions = [
 ];
 
 // Transaction Modal Component
-function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
   const [step, setStep] = useState<'select' | 'income' | 'expense'>('select');
   const [formData, setFormData] = useState<{
     amount: string;
     date: string;
-    category: string;
+    category_id: string;
     recurring: boolean;
     description: string;
   }>({
     amount: '',
     date: new Date().toISOString().split('T')[0],
-    category: '',
+    category_id: '',
     recurring: false,
     description: ''
   });
+  const [incomeCategories, setIncomeCategories] = useState<any[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<any[]>([]);
+
+  // Fetch categories when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  const fetchCategories = async () => {
+    try {
+      const [incomeRes, expenseRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/categories/income`),
+        fetch(`${API_BASE_URL}/categories/expense`)
+      ]);
+      if (incomeRes.ok) {
+        const incomeData = await incomeRes.json();
+        setIncomeCategories(incomeData);
+      }
+      if (expenseRes.ok) {
+        const expenseData = await expenseRes.json();
+        setExpenseCategories(expenseData);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const handleClose = () => {
     setStep('select');
     setFormData({
       amount: '',
       date: new Date().toISOString().split('T')[0],
-      category: '',
+      category_id: '',
       recurring: false,
       description: ''
     });
     onClose();
   };
 
-  const handleSubmit = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log('Transaction submitted:', { ...formData, type: step });
-    alert(`${step === 'income' ? 'Income' : 'Expense'} added successfully!`);
-    handleClose();
+    
+    if (!formData.amount || !formData.category_id) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const endpoint = step === 'income' ? 'income' : 'expenses';
+      const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 1, // Demo user
+          category_id: parseInt(formData.category_id),
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          date: formData.date,
+          recurring: formData.recurring
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add ${step}`);
+      }
+
+      alert(`${step === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      handleClose();
+      onSuccess(); // Refresh dashboard data
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      alert(`Failed to add ${step}. Please try again.`);
+    }
   };
 
   const handleChange = (
@@ -67,9 +124,6 @@ function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     });
   };
-
-  const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Business', 'Gift', 'Other'];
-  const expenseCategories = ['Food', 'Transportation', 'Shopping', 'Bills', 'Entertainment', 'Healthcare', 'Education', 'Other'];
 
   if (!isOpen) return null;
 
@@ -134,15 +188,15 @@ function TransactionModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <select
-                    name="category"
-                    value={formData.category}
+                    name="category_id"
+                    value={formData.category_id}
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
                   >
                     <option value="">Select a category</option>
                     {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
@@ -290,20 +344,30 @@ function Dashboard() {
   const getFilteredTransactions = () => {
     const allTransactions = [
       ...incomeData.map(t => ({ 
-        id: `income-${t.id}`, 
+        id: `income-${t.id}`,
+        dbId: t.id,
         title: t.description || t.category_name || 'Income', 
         amount: Number(t.amount), 
         date: t.date, 
-        type: 'income' as const 
+        type: 'income' as const,
+        created_at: t.created_at
       })),
       ...expensesData.map(t => ({ 
-        id: `expense-${t.id}`, 
+        id: `expense-${t.id}`,
+        dbId: t.id,
         title: t.description || t.category_name || 'Expense', 
         amount: -Number(t.amount), 
         date: t.date, 
-        type: 'expense' as const 
+        type: 'expense' as const,
+        created_at: t.created_at
       }))
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    ].sort((a, b) => {
+      // Sort by created_at if available, otherwise by id (most recent first)
+      if (a.created_at && b.created_at) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      return b.dbId - a.dbId;
+    });
 
     if (transactionFilter === 'all') return allTransactions;
     return allTransactions.filter(t => t.type === transactionFilter);
@@ -419,7 +483,7 @@ function Dashboard() {
                 
                 {/* Transaction List */}
                 <div className="space-y-3">
-                  {getFilteredTransactions().slice(0, 5).map(transaction => (
+                  {getFilteredTransactions().slice(0, 10).map(transaction => (
                     <div key={transaction.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100">
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -438,7 +502,7 @@ function Dashboard() {
                       <div className={`font-bold ${
                         transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString()}
+                        {transaction.amount > 0 ? '+' : ''}Rs. {Math.abs(transaction.amount).toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -542,7 +606,7 @@ function Dashboard() {
         </main>
       </div>
 
-      <TransactionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <TransactionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
     </div>
   );
 }
