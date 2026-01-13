@@ -274,6 +274,8 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [timePeriod, setTimePeriod] = useState('1 month');
+  const [filterMode, setFilterMode] = useState<'period' | 'month'>('period');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const [transactionFilter, setTransactionFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [incomeData, setIncomeData] = useState<any[]>([]);
   const [expensesData, setExpensesData] = useState<any[]>([]);
@@ -306,32 +308,72 @@ function Dashboard() {
     }
   };
 
-  // Calculate stats based on time period
+  // Calculate stats based on time period or calendar month
   const calculateStats = () => {
-    const now = new Date();
-    const monthsMap: Record<string, number> = {
-      '1 month': 1,
-      '2 months': 2,
-      '3 months': 3,
-      '6 months': 6,
-      '1 year': 12,
-      '2 years': 24,
-      '3 years': 36,
-      '4 years': 48,
-      '5 years': 60,
-      'All time': 9999
-    };
+    let filteredIncome: any[];
+    let filteredExpenses: any[];
 
-    const monthsBack = monthsMap[timePeriod] || 1;
-    const cutoffDate = new Date(now);
-    cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+    if (filterMode === 'month') {
+      // Filter by specific calendar month (1st to last day)
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const startOfMonth = new Date(year, month - 1, 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(year, month, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      filteredIncome = incomeData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startOfMonth && itemDate <= endOfMonth;
+      });
+      filteredExpenses = expensesData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startOfMonth && itemDate <= endOfMonth;
+      });
+    } else {
+      // Filter by rolling time period
+      const now = new Date();
+      now.setHours(23, 59, 59, 999); // End of today
+      
+      const monthsMap: Record<string, number> = {
+        '1 month': 1,
+        '2 months': 2,
+        '3 months': 3,
+        '6 months': 6,
+        '1 year': 12,
+        '2 years': 24,
+        '3 years': 36,
+        '4 years': 48,
+        '5 years': 60,
+        'All time': 9999
+      };
 
-    // Filter income and expenses by date
-    const filteredIncome = incomeData.filter(t => new Date(t.date) >= cutoffDate);
-    const filteredExpenses = expensesData.filter(t => new Date(t.date) >= cutoffDate);
+      const monthsBack = monthsMap[timePeriod] || 1;
+      
+      if (timePeriod === 'All time') {
+        filteredIncome = incomeData;
+        filteredExpenses = expensesData;
+      } else {
+        const cutoffDate = new Date(now);
+        cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+        cutoffDate.setHours(0, 0, 0, 0); // Start of that day
+
+        filteredIncome = incomeData.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= cutoffDate && itemDate <= now;
+        });
+        filteredExpenses = expensesData.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= cutoffDate && itemDate <= now;
+        });
+      }
+    }
+
+    // Continue with existing calculation using filtered data
+    const filteredIncome_old = filteredIncome;
+    const filteredExpenses_old = filteredExpenses;
     
-    const income = filteredIncome.reduce((sum, t) => sum + Number(t.amount), 0);
-    const expenses = filteredExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
+    const income = filteredIncome_old.reduce((sum, t) => sum + Number(t.amount), 0);
+    const expenses = filteredExpenses_old.reduce((sum, t) => sum + Number(t.amount), 0);
     const balance = income - expenses;
     const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
@@ -386,50 +428,94 @@ function Dashboard() {
             <div className="text-sm text-muted">Welcome back — here's what's happening with your accounts</div>
           </div>
 
-          {/* Time Period Filter (Dropdown Style) */}
+          {/* Time Period Filter */}
           <div className="bg-white rounded-lg p-4 shadow mb-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Time Period</h3>
-              <div className="relative inline-block">
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
-                >
-                  <optgroup label="Months">
-                    <option value="1 month">Last 1 Month</option>
-                    <option value="2 months">Last 2 Months</option>
-                    <option value="3 months">Last 3 Months</option>
-                    <option value="6 months">Last 6 Months</option>
-                  </optgroup>
-                  <optgroup label="Years">
-                    <option value="1 year">Last 1 Year</option>
-                    <option value="2 years">Last 2 Years</option>
-                    <option value="3 years">Last 3 Years</option>
-                    <option value="4 years">Last 4 Years</option>
-                    <option value="5 years">Last 5 Years</option>
-                  </optgroup>
-                  <optgroup label="Other">
-                    <option value="All time">All Time</option>
-                  </optgroup>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                  <FaChevronDown size={12} />
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h3 className="font-semibold text-lg">Filter By</h3>
+              
+              <div className="flex items-center gap-4">
+                {/* Filter Mode Toggle */}
+                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setFilterMode('period')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      filterMode === 'period' 
+                        ? 'bg-blue-600 text-white shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Time Period
+                  </button>
+                  <button
+                    onClick={() => setFilterMode('month')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      filterMode === 'month' 
+                        ? 'bg-blue-600 text-white shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Calendar Month
+                  </button>
                 </div>
+
+                {/* Period Selector */}
+                {filterMode === 'period' ? (
+                  <div className="relative inline-block">
+                    <select
+                      value={timePeriod}
+                      onChange={(e) => setTimePeriod(e.target.value)}
+                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
+                    >
+                      <optgroup label="Months">
+                        <option value="1 month">Last 1 Month</option>
+                        <option value="2 months">Last 2 Months</option>
+                        <option value="3 months">Last 3 Months</option>
+                        <option value="6 months">Last 6 Months</option>
+                      </optgroup>
+                      <optgroup label="Years">
+                        <option value="1 year">Last 1 Year</option>
+                        <option value="2 years">Last 2 Years</option>
+                        <option value="3 years">Last 3 Years</option>
+                        <option value="4 years">Last 4 Years</option>
+                        <option value="5 years">Last 5 Years</option>
+                      </optgroup>
+                      <optgroup label="Other">
+                        <option value="All time">All Time</option>
+                      </optgroup>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                      <FaChevronDown size={12} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative inline-block">
+                    <input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      max={new Date().toISOString().slice(0, 7)}
+                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <DashboardCard
-              title="Total Income"
+              title={`Total Income ${filterMode === 'month' 
+                ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
+                : `(${timePeriod})`}`}
               amount={`Rs. ${stats.income.toLocaleString()}`}
               icon={<FaMoneyBillWave />}
               color="bg-white"
               onClick={() => navigate('/income')}
             />
             <DashboardCard
-              title="Total Expenses"
+              title={`Total Expenses ${filterMode === 'month' 
+                ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
+                : `(${timePeriod})`}`}
               amount={`Rs. ${stats.expenses.toLocaleString()}`}
               icon={<FaShoppingCart />}
               color="bg-white"
