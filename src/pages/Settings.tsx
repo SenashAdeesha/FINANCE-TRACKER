@@ -77,16 +77,16 @@ function Settings() {
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Settings" />
 
-        <main className="p-6">
+        <main className="p-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
+            <p className="text-gray-600">Manage your account settings and preferences</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar Navigation */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <nav className="flex flex-col">
                   {tabs.map((tab) => (
                     <button
@@ -109,7 +109,7 @@ function Settings() {
 
             {/* Content Area */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-xl shadow-sm">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 {/* General Settings */}
                 {activeTab === 'general' && (
                   <div className="p-8">
