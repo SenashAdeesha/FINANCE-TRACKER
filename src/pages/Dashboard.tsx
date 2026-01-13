@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import DashboardCard from "../components/DashboardCard";
 import IncomeExpensesChart from "../components/IncomeExpensesChart";
-import { FaMoneyBillWave, FaShoppingCart, FaWallet, FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye } from "react-icons/fa";
+import { FaMoneyBillWave, FaShoppingCart, FaWallet, FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye, FaPlus } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -422,9 +422,20 @@ function Dashboard() {
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Dashboard" />
 
-        <main className="p-6">
+        <main className="p-8 max-w-7xl mx-auto">
+          {/* Header Actions */}
+          <div className="flex justify-end mb-6">
+            <button 
+              onClick={() => setModalOpen(true)}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
+            >
+              <FaPlus className="text-sm" />
+              Add Transaction
+            </button>
+          </div>
+
           {/* Time Period Filter */}
-          <div className="bg-white rounded-lg p-4 shadow mb-6">
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <h3 className="font-semibold text-lg">Filter By</h3>
               
@@ -497,7 +508,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <DashboardCard
               title={`Total Income ${filterMode === 'month' 
                 ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
@@ -520,7 +531,7 @@ function Dashboard() {
             <DashboardCard title="Savings" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaPiggyBank />} color="bg-white" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <IncomeExpensesChart income={stats.income} expenses={stats.expenses} />
               
