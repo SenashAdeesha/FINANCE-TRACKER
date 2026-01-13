@@ -7,7 +7,7 @@ import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaPiggyBank, FaChartLi
 const API_BASE_URL = 'http://localhost:3001/api';
 
 // Savings Modal Component
-function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
+function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: boolean; onClose: () => void; onSuccess: () => void; editingEntry?: any }) {
   const [step, setStep] = useState<'select' | 'savings' | 'investment'>('select');
   const [formData, setFormData] = useState({
     amount: '',
@@ -16,6 +16,20 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
     recurring: false,
     description: ''
   });
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editingEntry && isOpen) {
+      setStep(editingEntry.type);
+      setFormData({
+        amount: editingEntry.amount.toString(),
+        date: editingEntry.date.split('T')[0],
+        category: editingEntry.category,
+        recurring: editingEntry.recurring,
+        description: editingEntry.description || ''
+      });
+    }
+  }, [editingEntry, isOpen]);
 
   const handleClose = () => {
     setStep('select');
@@ -38,8 +52,14 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/savings-investments`, {
-        method: 'POST',
+      const url = editingEntry 
+        ? `${API_BASE_URL}/savings-investments/${editingEntry.id}`
+        : `${API_BASE_URL}/savings-investments`;
+      
+      const method = editingEntry ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: 1,
@@ -53,15 +73,15 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add ${step}`);
+        throw new Error(`Failed to ${editingEntry ? 'update' : 'add'} ${step}`);
       }
 
-      alert(`${step === 'savings' ? 'Savings' : 'Investment'} added successfully!`);
+      alert(`${step === 'savings' ? 'Savings' : 'Investment'} ${editingEntry ? 'updated' : 'added'} successfully!`);
       handleClose();
       onSuccess();
     } catch (error) {
-      console.error('Error adding entry:', error);
-      alert(`Failed to add ${step}. Please try again.`);
+      console.error('Error saving entry:', error);
+      alert(`Failed to ${editingEntry ? 'update' : 'add'} ${step}. Please try again.`);
     }
   };
 
@@ -84,7 +104,7 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Add {step === 'select' ? 'Entry' : (step === 'savings' ? 'Savings' : 'Investment')}</h2>
+          <h2 className="text-lg font-semibold">{editingEntry ? 'Edit' : 'Add'} {step === 'select' ? 'Entry' : (step === 'savings' ? 'Savings' : 'Investment')}</h2>
           <button onClick={handleClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">
             <FaTimes size={18} />
           </button>
@@ -212,7 +232,7 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
             <div className="flex justify-end gap-3 pt-2">
               <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
               <button type="button" onClick={handleSubmit} className={`px-4 py-2 rounded-md text-white ${step === 'savings' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}>
-                Add {step === 'savings' ? 'Savings' : 'Investment'}
+                {editingEntry ? 'Update' : 'Add'} {step === 'savings' ? 'Savings' : 'Investment'}
               </button>
             </div>
           </form>
@@ -227,6 +247,7 @@ function SavingsModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose
 function Savings() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [typeFilter, setTypeFilter] = useState<string>('All');
   const [timePeriod, setTimePeriod] = useState('1 month');
@@ -268,17 +289,15 @@ function Savings() {
     }
   };
 
-  const savingsCategories = [
-    { name: "Emergency Fund", amount: 20000, color: "bg-blue-500", type: "savings" },
-    { name: "Vacation", amount: 15000, color: "bg-teal-500", type: "savings" },
-    { name: "Retirement", amount: 50000, color: "bg-indigo-500", type: "savings" },
-  ];
+  const handleEdit = (entry: any) => {
+    setEditingEntry(entry);
+    setModalOpen(true);
+  };
 
-  const investmentCategories = [
-    { name: "Mutual Funds", amount: 10000, color: "bg-purple-500", type: "investment" },
-    { name: "Stocks", amount: 25000, color: "bg-green-500", type: "investment" },
-    { name: "Gold", amount: 30000, color: "bg-yellow-500", type: "investment" },
-  ];
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEditingEntry(null);
+  };
 
   // Calculate based on time period
   const calculateData = () => {
@@ -304,6 +323,34 @@ function Savings() {
   };
 
   const filteredByTime = calculateData();
+
+  // Calculate category breakdowns from actual data
+  const calculateCategoryBreakdown = (type: 'savings' | 'investment') => {
+    const filtered = filteredByTime.filter(item => item.type === type);
+    const categoryMap = new Map<string, number>();
+    
+    filtered.forEach(item => {
+      const current = categoryMap.get(item.category) || 0;
+      categoryMap.set(item.category, current + Number(item.amount));
+    });
+    
+    const colors = [
+      'bg-blue-500', 'bg-teal-500', 'bg-indigo-500', 'bg-purple-500', 
+      'bg-green-500', 'bg-yellow-500', 'bg-pink-500', 'bg-red-500'
+    ];
+    
+    return Array.from(categoryMap.entries())
+      .map(([name, amount], index) => ({
+        name,
+        amount,
+        color: colors[index % colors.length],
+        type
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  };
+
+  const savingsCategories = calculateCategoryBreakdown('savings');
+  const investmentCategories = calculateCategoryBreakdown('investment');
   
   // Apply type filter
   const filteredByType = typeFilter === 'All' 
@@ -490,7 +537,7 @@ function Savings() {
                           +Rs. {Number(item.amount).toLocaleString()}
                         </div>
                         <div className="flex gap-2">
-                          <button className="p-2 hover:bg-gray-200 rounded">
+                          <button onClick={() => handleEdit(item)} className="p-2 hover:bg-gray-200 rounded">
                             <FaEdit className="text-gray-600" />
                           </button>
                           <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-100 rounded">
@@ -557,7 +604,12 @@ function Savings() {
         </main>
       </div>
 
-      <SavingsModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
+      <SavingsModal 
+        isOpen={modalOpen} 
+        onClose={handleModalClose}
+        onSuccess={fetchData}
+        editingEntry={editingEntry}
+      />
     </div>
   );
 }
