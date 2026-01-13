@@ -10,58 +10,42 @@ import {
   FaMapMarkerAlt, 
   FaCalendar, 
   FaUser, 
-  FaLock, 
-  FaBell, 
-  FaShieldAlt,
-  FaLanguage,
-  FaCreditCard,
   FaSave,
   FaTimes,
-  FaCheck
+  FaShieldAlt,
+  FaBriefcase
 } from "react-icons/fa";
 
 function Profile() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'personal' | 'security' | 'preferences'>('personal');
   
   const [profileData, setProfileData] = useState({
     firstName: "John",
     lastName: "Doe",
     email: "john.doe@example.com",
     phone: "+94 77 123 4567",
-    address: "123 Main Street, Colombo 03",
+    address: "123 Main Street",
     city: "Colombo",
     country: "Sri Lanka",
     postalCode: "00300",
     dateOfBirth: "1990-05-15",
+    occupation: "Software Engineer",
     bio: "Financial enthusiast focused on building wealth and achieving financial independence."
   });
 
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    weeklyReport: true,
-    budgetAlerts: true,
-    goalReminders: true
-  });
-
-  const [preferences, setPreferences] = useState({
-    language: "English",
-    currency: "LKR (Rs.)",
-    timezone: "Asia/Colombo",
-    dateFormat: "DD/MM/YYYY"
-  });
-
   const handleSave = () => {
-    // Save logic here
     setIsEditing(false);
     alert("Profile updated successfully!");
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset to original values if needed
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -69,429 +53,306 @@ function Profile() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="My Profile" />
+        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Profile" />
 
         <main className="p-8 max-w-7xl mx-auto">
-          {/* Profile Header Card */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg p-8 mb-6 text-white">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center text-4xl font-bold overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
-                    JD
-                  </div>
-                </div>
-                <button className="absolute bottom-0 right-0 bg-white text-blue-600 p-3 rounded-full hover:bg-gray-100 shadow-lg transition-all">
-                  <FaCamera size={16} />
-                </button>
-              </div>
-              
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl font-bold mb-2">{profileData.firstName} {profileData.lastName}</h1>
-                <p className="text-blue-100 mb-4">{profileData.email}</p>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <FaCalendar size={14} />
-                    <span>Member since Jan 2025</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <FaShieldAlt size={14} />
-                    <span>Verified Account</span>
-                  </div>
-                </div>
-              </div>
-
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-white text-blue-600 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
-                >
-                  <FaEdit size={16} />
-                  Edit Profile
-                </button>
-              )}
+          {/* Header Section */}
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <p className="text-gray-600 text-sm">Manage your account information and personal details</p>
             </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-            <div className="flex border-b">
+            {!isEditing && (
               <button
-                onClick={() => setActiveTab('personal')}
-                className={`flex-1 px-6 py-4 font-medium transition-colors ${
-                  activeTab === 'personal'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                onClick={() => setIsEditing(true)}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
               >
-                <div className="flex items-center justify-center gap-2">
-                  <FaUser />
-                  <span>Personal Information</span>
-                </div>
+                <FaEdit className="text-sm" />
+                Edit Profile
               </button>
-              <button
-                onClick={() => setActiveTab('security')}
-                className={`flex-1 px-6 py-4 font-medium transition-colors ${
-                  activeTab === 'security'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <FaLock />
-                  <span>Security</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('preferences')}
-                className={`flex-1 px-6 py-4 font-medium transition-colors ${
-                  activeTab === 'preferences'
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <FaBell />
-                  <span>Preferences</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            {/* Personal Information Tab */}
-            {activeTab === 'personal' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Personal Information</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                    <input
-                      type="text"
-                      value={profileData.firstName}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      value={profileData.lastName}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FaEnvelope className="inline mr-2 text-gray-400" />
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={profileData.email}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FaPhone className="inline mr-2 text-gray-400" />
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={profileData.phone}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input
-                      type="date"
-                      value={profileData.dateOfBirth}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FaMapMarkerAlt className="inline mr-2 text-gray-400" />
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={profileData.city}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, city: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                    <input
-                      type="text"
-                      value={profileData.address}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                    <input
-                      type="text"
-                      value={profileData.country}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, country: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                    <input
-                      type="text"
-                      value={profileData.postalCode}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, postalCode: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                    <textarea
-                      value={profileData.bio}
-                      disabled={!isEditing}
-                      onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
-                      rows={4}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
             )}
+          </div>
 
-            {/* Security Tab */}
-            {activeTab === 'security' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Security Settings</h2>
-                
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                        <FaCheck className="text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">Your account is secure</p>
-                        <p className="text-sm text-gray-600">Last password change: 30 days ago</p>
-                      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Profile Card */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                      {profileData.firstName[0]}{profileData.lastName[0]}
                     </div>
-                  </div>
-
-                  <div className="border-t pt-6">
-                    <h3 className="font-semibold text-gray-800 mb-4">Change Password</h3>
-                    <div className="space-y-4 max-w-xl">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                        <input
-                          type="password"
-                          placeholder="Enter current password"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                        <input
-                          type="password"
-                          placeholder="Enter new password"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                        <input
-                          type="password"
-                          placeholder="Confirm new password"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
-                        Update Password
+                    {isEditing && (
+                      <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 shadow-lg transition-colors">
+                        <FaCamera size={16} />
                       </button>
-                    </div>
+                    )}
                   </div>
+                  <h2 className="text-2xl font-bold mt-4 text-gray-800">{profileData.firstName} {profileData.lastName}</h2>
+                  <p className="text-gray-600 mt-1">{profileData.occupation}</p>
 
-                  <div className="border-t pt-6">
-                    <h3 className="font-semibold text-gray-800 mb-4">Two-Factor Authentication</h3>
-                    <div className="flex items-start justify-between p-4 border border-gray-200 rounded-lg">
+                  <div className="w-full mt-6 pt-6 border-t space-y-4">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <FaEnvelope className="text-blue-600" />
+                      </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-800">Enable 2FA</p>
-                        <p className="text-sm text-gray-600 mt-1">Add an extra layer of security to your account</p>
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="font-medium text-gray-800 break-all">{profileData.email}</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                        <FaPhone className="text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">Phone</p>
+                        <p className="font-medium text-gray-800">{profileData.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                        <FaMapMarkerAlt className="text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">Location</p>
+                        <p className="font-medium text-gray-800">{profileData.city}, {profileData.country}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+                        <FaCalendar className="text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">Member Since</p>
+                        <p className="font-medium text-gray-800">January 2025</p>
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="border-t pt-6">
-                    <h3 className="font-semibold text-gray-800 mb-4 text-red-600">Danger Zone</h3>
-                    <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-                      <p className="font-medium text-gray-800 mb-2">Delete Account</p>
-                      <p className="text-sm text-gray-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-                      <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
-                        Delete My Account
-                      </button>
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-800">
+                    <FaShieldAlt className="text-blue-600" />
+                    Account Status
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Account Type</span>
+                      <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full font-medium">Premium</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Verification</span>
+                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium flex items-center gap-1">
+                        <FaShieldAlt size={10} />
+                        Verified
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Status</span>
+                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">Active</span>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Preferences Tab */}
-            {activeTab === 'preferences' && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Preferences & Settings</h2>
-                
-                <div className="space-y-6">
-                  {/* Notifications */}
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <FaBell className="text-blue-600" />
-                      Notification Settings
-                    </h3>
-                    <div className="space-y-3">
-                      {Object.entries(notifications).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                          <div>
-                            <p className="font-medium text-gray-800 capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {key === 'emailNotifications' && 'Receive updates via email'}
-                              {key === 'pushNotifications' && 'Get push notifications on your device'}
-                              {key === 'weeklyReport' && 'Weekly financial summary report'}
-                              {key === 'budgetAlerts' && 'Alerts when approaching budget limits'}
-                              {key === 'goalReminders' && 'Reminders for savings goals'}
-                            </p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={value}
-                              onChange={(e) => setNotifications({...notifications, [key]: e.target.checked})}
-                              className="sr-only peer" 
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      ))}
+            {/* Account Details */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <FaUser className="text-blue-600" />
+                    Account Details
+                  </h2>
+                  {isEditing && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCancel}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      >
+                        <FaTimes size={14} />
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
+                        <FaSave size={14} />
+                        Save Changes
+                      </button>
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Language & Region */}
-                  <div className="border-t pt-6">
-                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <FaLanguage className="text-blue-600" />
-                      Language & Region
-                    </h3>
+                <div className="space-y-6">
+                  {/* Personal Information Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
-                        <select 
-                          value={preferences.language}
-                          onChange={(e) => setPreferences({...preferences, language: e.target.value})}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option>English</option>
-                          <option>Sinhala</option>
-                          <option>Tamil</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={profileData.firstName}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
-                        <select 
-                          value={preferences.timezone}
-                          onChange={(e) => setPreferences({...preferences, timezone: e.target.value})}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option>Asia/Colombo</option>
-                          <option>Asia/Kolkata</option>
-                          <option>UTC</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={profileData.lastName}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                          <FaCreditCard className="text-gray-400" />
-                          Currency
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input
+                          type="date"
+                          name="dateOfBirth"
+                          value={profileData.dateOfBirth}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <FaBriefcase className="inline mr-2 text-gray-400" size={14} />
+                          Occupation
                         </label>
-                        <select 
-                          value={preferences.currency}
-                          onChange={(e) => setPreferences({...preferences, currency: e.target.value})}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option>LKR (Rs.)</option>
-                          <option>USD ($)</option>
-                          <option>EUR (€)</option>
-                          <option>INR (₹)</option>
-                        </select>
+                        <input
+                          type="text"
+                          name="occupation"
+                          value={profileData.occupation}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="pt-6 border-t">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Contact Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
-                        <select 
-                          value={preferences.dateFormat}
-                          onChange={(e) => setPreferences({...preferences, dateFormat: e.target.value})}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option>DD/MM/YYYY</option>
-                          <option>MM/DD/YYYY</option>
-                          <option>YYYY-MM-DD</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <FaEnvelope className="inline mr-2 text-gray-400" size={14} />
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={profileData.email}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <FaPhone className="inline mr-2 text-gray-400" size={14} />
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={profileData.phone}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Address Information Section */}
+                  <div className="pt-6 border-t">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+                      <FaMapMarkerAlt className="inline mr-2 text-gray-400" size={14} />
+                      Address Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                        <input
+                          type="text"
+                          name="address"
+                          value={profileData.address}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input
+                          type="text"
+                          name="city"
+                          value={profileData.city}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                        <input
+                          type="text"
+                          name="postalCode"
+                          value={profileData.postalCode}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                        <input
+                          type="text"
+                          name="country"
+                          value={profileData.country}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio Section */}
+                  <div className="pt-6 border-t">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">About</h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                      <textarea
+                        name="bio"
+                        value={profileData.bio}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        rows={4}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 resize-none transition-colors"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Action Buttons */}
-            {isEditing && activeTab === 'personal' && (
-              <div className="flex justify-end gap-3 pt-6 border-t mt-6">
-                <button
-                  onClick={handleCancel}
-                  className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
-                >
-                  <FaTimes />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                >
-                  <FaSave />
-                  Save Changes
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         </main>
       </div>
