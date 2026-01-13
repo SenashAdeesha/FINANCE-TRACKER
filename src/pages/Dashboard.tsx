@@ -279,7 +279,10 @@ function Dashboard() {
   const [transactionFilter, setTransactionFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [incomeData, setIncomeData] = useState<any[]>([]);
   const [expensesData, setExpensesData] = useState<any[]>([]);
+  const [savingsInvestmentsData, setSavingsInvestmentsData] = useState<any[]>([]);
+  const [savingsGoalsData, setSavingsGoalsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch income and expenses data
@@ -289,20 +292,45 @@ function Dashboard() {
 
   const fetchData = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
-      const [incomeRes, expensesRes] = await Promise.all([
+      const [incomeRes, expensesRes, savingsInvRes, savingsGoalsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/income`),
-        fetch(`${API_BASE_URL}/expenses`)
+        fetch(`${API_BASE_URL}/expenses`),
+        fetch(`${API_BASE_URL}/savings-investments`),
+        fetch(`${API_BASE_URL}/savings`)
       ]);
       
-      if (incomeRes.ok && expensesRes.ok) {
+      // Log response status for debugging
+      console.debug('fetchData: income', incomeRes.status, 'expenses', expensesRes.status, 'savingsInv', savingsInvRes.status, 'savingsGoals', savingsGoalsRes.status);
+
+      if (incomeRes.ok) {
         const income = await incomeRes.json();
-        const expenses = await expensesRes.json();
         setIncomeData(income);
+      } else {
+        console.error('Failed to fetch income', await incomeRes.text());
+      }
+      if (expensesRes.ok) {
+        const expenses = await expensesRes.json();
         setExpensesData(expenses);
+      } else {
+        console.error('Failed to fetch expenses', await expensesRes.text());
+      }
+      if (savingsInvRes.ok) {
+        const savingsInv = await savingsInvRes.json();
+        setSavingsInvestmentsData(savingsInv);
+      } else {
+        console.error('Failed to fetch savings-investments', await savingsInvRes.text());
+      }
+      if (savingsGoalsRes.ok) {
+        const goals = await savingsGoalsRes.json();
+        setSavingsGoalsData(goals);
+      } else {
+        console.error('Failed to fetch savings goals', await savingsGoalsRes.text());
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setFetchError(error instanceof Error ? error.message : String(error));
     } finally {
       setLoading(false);
     }
@@ -377,11 +405,15 @@ function Dashboard() {
     const balance = income - expenses;
     const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
+    // Total savings from savings/investments table
+    const totalSavings = savingsInvestmentsData.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+
     return { 
       income, 
       expenses, 
       balance, 
       savingsRate,
+      totalSavings,
       filteredIncome: filteredIncome_old,
       filteredExpenses: filteredExpenses_old
     };
@@ -433,13 +465,22 @@ function Dashboard() {
           {/* Header Actions */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600 text-sm">Overview of your financial status and recent activities</p>
-            <button 
-              onClick={() => setModalOpen(true)}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
-            >
-              <FaPlus className="text-sm" />
-              Add Transaction
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setModalOpen(true)}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
+              >
+                <FaPlus className="text-sm" />
+                Add Transaction
+              </button>
+              <button
+                onClick={fetchData}
+                className="px-4 py-2 border rounded-lg bg-white text-sm hover:bg-gray-50"
+                title="Refresh dashboard data"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
 
           {/* Time Period Filter */}
@@ -536,7 +577,7 @@ function Dashboard() {
               onClick={() => navigate('/expenses')}
             />
             <DashboardCard title="Balance" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaWallet />} color="bg-white" />
-            <DashboardCard title="Savings" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaPiggyBank />} color="bg-white" />
+            <DashboardCard title="Savings" amount={`Rs. ${Number(stats.totalSavings || 0).toLocaleString()}`} icon={<FaPiggyBank />} color="bg-white" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
