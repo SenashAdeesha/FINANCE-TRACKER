@@ -407,11 +407,11 @@ function Expense() {
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Expenses" />
 
-        <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <main className="p-8 max-w-7xl mx-auto">
+          <div className="flex justify-end mb-6">
             <button 
               onClick={() => setModalOpen(true)}
-              className="px-4 py-2 rounded bg-primary text-white flex items-center gap-2"
+              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
             >
               <FaPlus className="text-sm" />
               Add Expense
@@ -419,7 +419,7 @@ function Expense() {
           </div>
 
           {/* Time Period Filter */}
-          <div className="bg-white rounded-lg p-4 shadow mb-6">
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <h3 className="font-semibold text-lg">Filter By</h3>
               
@@ -492,8 +492,8 @@ function Expense() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-lg shadow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-sm text-gray-600 mb-2">
                 Total Expense ({filterMode === 'month' 
                   ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -517,7 +517,7 @@ function Expense() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-lg shadow">
+            <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <div>
@@ -600,7 +600,7 @@ function Expense() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Expense by Category</h2>
               {loading ? (
                 <div className="text-center py-4 text-gray-500">Loading...</div>
