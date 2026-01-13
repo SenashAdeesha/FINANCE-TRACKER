@@ -75,12 +75,11 @@ function Settings() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Settings" />
 
         <main className="p-6">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
             <p className="text-gray-600 mt-2">Manage your account settings and preferences</p>
           </div>
 

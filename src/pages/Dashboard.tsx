@@ -420,14 +420,9 @@ function Dashboard() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Dashboard" />
 
         <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
-            <div className="text-sm text-muted">Welcome back — here's what's happening with your accounts</div>
-          </div>
-
           {/* Time Period Filter */}
           <div className="bg-white rounded-lg p-4 shadow mb-6">
             <div className="flex items-center justify-between flex-wrap gap-4">

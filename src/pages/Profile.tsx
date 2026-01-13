@@ -27,11 +27,10 @@ function Profile() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Profile" />
 
         <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold">Profile</h1>
+          <div className="mb-6">
             <Link to="/settings?tab=general" className="px-4 py-2 rounded bg-primary text-white flex items-center gap-2 hover:bg-primary/90 transition-colors">
               <FaEdit className="text-sm" />
               Edit Profile

@@ -3,9 +3,10 @@ import { FaSignOutAlt } from "react-icons/fa";
 
 type Props = {
   onToggleSidebar?: () => void;
+  pageTitle?: string;
 };
 
-function Navbar({ onToggleSidebar }: Props) {
+function Navbar({ onToggleSidebar, pageTitle }: Props) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -16,14 +17,7 @@ function Navbar({ onToggleSidebar }: Props) {
     <header className="h-16 bg-white shadow flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
         <button onClick={onToggleSidebar} className="md:hidden text-gray-600 p-2 rounded hover:bg-gray-100">☰</button>
-        <div className="relative">
-          <input
-            aria-label="Search"
-            type="search"
-            placeholder="Search transactions, accounts..."
-            className="w-64 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+        {pageTitle && <h1 className="text-2xl font-semibold text-gray-800">{pageTitle}</h1>}
       </div>
 
       <div className="flex items-center gap-4">

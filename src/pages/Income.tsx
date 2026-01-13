@@ -405,11 +405,10 @@ function Income() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
+        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Income" />
 
         <main className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold">Income</h1>
             <button 
               onClick={() => setModalOpen(true)}
               className="px-4 py-2 rounded bg-primary text-white flex items-center gap-2"
