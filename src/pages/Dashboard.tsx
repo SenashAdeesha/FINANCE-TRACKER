@@ -652,7 +652,11 @@ function Dashboard() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-800">Top Spending</p>
-                      <p className="text-xs text-gray-600">Largest expense: Vacation (Rs. 45,000)</p>
+                      <p className="text-xs text-gray-600">
+                        {expensesData.length > 0 
+                          ? `Largest expense: ${expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (Rs. ${Number(expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount).toLocaleString()})`
+                          : 'No expenses recorded yet'}
+                      </p>
                     </div>
                   </div>
                   
@@ -676,15 +680,23 @@ function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Transactions</span>
-                    <span className="font-semibold text-gray-800">{mockTransactions.length}</span>
+                    <span className="font-semibold text-gray-800">{incomeData.length + expensesData.length}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Avg. Income</span>
-                    <span className="font-semibold text-green-600">Rs. {Math.round(stats.income / mockTransactions.filter(t => t.type === 'income').length).toLocaleString()}</span>
+                    <span className="font-semibold text-green-600">
+                      {incomeData.length > 0 
+                        ? `Rs. ${Math.round(stats.income / incomeData.length).toLocaleString()}`
+                        : 'Rs. 0'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Avg. Expense</span>
-                    <span className="font-semibold text-red-600">Rs. {Math.round(stats.expenses / mockTransactions.filter(t => t.type === 'expense').length).toLocaleString()}</span>
+                    <span className="font-semibold text-red-600">
+                      {expensesData.length > 0 
+                        ? `Rs. ${Math.round(stats.expenses / expensesData.length).toLocaleString()}`
+                        : 'Rs. 0'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t">
                     <span className="text-gray-600">Net Balance</span>
