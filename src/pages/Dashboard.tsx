@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import DashboardCard from "../components/DashboardCard";
 import IncomeExpensesChart from "../components/IncomeExpensesChart";
+import FinancialInsightsModal from "../components/FinancialInsightsModal";
 import { FaMoneyBillWave, FaShoppingCart, FaWallet, FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye, FaPlus } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -273,6 +274,7 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
   const [timePeriod, setTimePeriod] = useState('1 month');
   const [filterMode, setFilterMode] = useState<'period' | 'month'>('period');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
@@ -459,7 +461,11 @@ function Dashboard() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Dashboard" />
+        <Navbar 
+          onToggleSidebar={() => setSidebarOpen((s) => !s)} 
+          pageTitle="Dashboard"
+          onNotificationClick={() => setInsightsModalOpen(true)}
+        />
 
         <main className="p-8 max-w-7xl mx-auto">
           {/* Header Actions */}
@@ -760,6 +766,16 @@ function Dashboard() {
       </div>
 
       <TransactionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
+      <FinancialInsightsModal 
+        isOpen={insightsModalOpen}
+        onClose={() => setInsightsModalOpen(false)}
+        incomeData={incomeData}
+        expensesData={expensesData}
+        totalIncome={stats.income}
+        totalExpenses={stats.expenses}
+        balance={stats.balance}
+        savingsRate={stats.savingsRate}
+      />
     </div>
   );
 }

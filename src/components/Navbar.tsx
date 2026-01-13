@@ -4,9 +4,10 @@ import { FaSignOutAlt } from "react-icons/fa";
 type Props = {
   onToggleSidebar?: () => void;
   pageTitle?: string;
+  onNotificationClick?: () => void;
 };
 
-function Navbar({ onToggleSidebar, pageTitle }: Props) {
+function Navbar({ onToggleSidebar, pageTitle, onNotificationClick }: Props) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,7 +22,13 @@ function Navbar({ onToggleSidebar, pageTitle }: Props) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="text-gray-600 px-2 py-1 rounded hover:bg-gray-100">🔔</button>
+        <button 
+          onClick={onNotificationClick}
+          className="text-gray-600 px-2 py-1 rounded hover:bg-gray-100 relative"
+          title="View Financial Insights"
+        >
+          🔔
+        </button>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">S</div>
           <span className="text-gray-700 font-medium">Sena</span>
