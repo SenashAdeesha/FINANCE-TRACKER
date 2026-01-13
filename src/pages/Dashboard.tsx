@@ -377,7 +377,14 @@ function Dashboard() {
     const balance = income - expenses;
     const savingsRate = income > 0 ? Math.round((balance / income) * 100) : 0;
 
-    return { income, expenses, balance, savingsRate };
+    return { 
+      income, 
+      expenses, 
+      balance, 
+      savingsRate,
+      filteredIncome: filteredIncome_old,
+      filteredExpenses: filteredExpenses_old
+    };
   };
 
   const stats = calculateStats();
@@ -653,8 +660,8 @@ function Dashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-800">Top Spending</p>
                       <p className="text-xs text-gray-600">
-                        {expensesData.length > 0 
-                          ? `Largest expense: ${expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (Rs. ${Number(expensesData.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount).toLocaleString()})`
+                        {stats.filteredExpenses.length > 0 
+                          ? `Largest expense: ${stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (Rs. ${Number(stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount).toLocaleString()})`
                           : 'No expenses recorded yet'}
                       </p>
                     </div>
@@ -680,21 +687,21 @@ function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Total Transactions</span>
-                    <span className="font-semibold text-gray-800">{incomeData.length + expensesData.length}</span>
+                    <span className="font-semibold text-gray-800">{stats.filteredIncome.length + stats.filteredExpenses.length}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Avg. Income</span>
                     <span className="font-semibold text-green-600">
-                      {incomeData.length > 0 
-                        ? `Rs. ${Math.round(stats.income / incomeData.length).toLocaleString()}`
+                      {stats.filteredIncome.length > 0 
+                        ? `Rs. ${Math.round(stats.income / stats.filteredIncome.length).toLocaleString()}`
                         : 'Rs. 0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Avg. Expense</span>
                     <span className="font-semibold text-red-600">
-                      {expensesData.length > 0 
-                        ? `Rs. ${Math.round(stats.expenses / expensesData.length).toLocaleString()}`
+                      {stats.filteredExpenses.length > 0 
+                        ? `Rs. ${Math.round(stats.expenses / stats.filteredExpenses.length).toLocaleString()}`
                         : 'Rs. 0'}
                     </span>
                   </div>
