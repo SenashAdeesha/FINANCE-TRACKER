@@ -407,11 +407,11 @@ function Income() {
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Income" />
 
-        <main className="p-6">
-          <div className="flex items-center justify-between mb-6">
+        <main className="p-8 max-w-7xl mx-auto">
+          <div className="flex justify-end mb-6">
             <button 
               onClick={() => setModalOpen(true)}
-              className="px-4 py-2 rounded bg-primary text-white flex items-center gap-2"
+              className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
             >
               <FaPlus className="text-sm" />
               Add Income
@@ -419,7 +419,7 @@ function Income() {
           </div>
 
           {/* Time Period Filter */}
-          <div className="bg-white rounded-lg p-4 shadow mb-6">
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <h3 className="font-semibold text-lg">Filter By</h3>
               
@@ -492,8 +492,8 @@ function Income() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-lg shadow p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-sm text-gray-600 mb-2">
                 Total Income ({filterMode === 'month' 
                   ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -503,13 +503,13 @@ function Income() {
               <div className="text-xs text-gray-600 mt-1">{filteredByTime.length} transactions</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-sm text-gray-600 mb-2">Recurring Income</h3>
               <div className="text-3xl font-bold">Rs. {recurringIncome.toLocaleString()}</div>
               <div className="text-xs text-gray-600 mt-1">From recurring sources</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-sm text-gray-600 mb-2">One-time Income</h3>
               <div className="text-3xl font-bold">Rs. {oneTimeIncome.toLocaleString()}</div>
               <div className="text-xs text-gray-600 mt-1">From one-time sources</div>
@@ -517,7 +517,7 @@ function Income() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-lg shadow">
+            <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-6 border-b">
                 <div className="flex items-center justify-between">
                   <div>
@@ -600,7 +600,7 @@ function Income() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold mb-4">Income by Category</h2>
               {loading ? (
                 <div className="text-center py-4 text-gray-500">Loading...</div>
