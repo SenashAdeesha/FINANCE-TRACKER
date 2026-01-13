@@ -29,10 +29,13 @@ function Navbar({ onToggleSidebar, pageTitle, onNotificationClick }: Props) {
         >
           🔔
         </button>
-        <div className="flex items-center gap-3">
+        <button 
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors"
+        >
           <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">S</div>
           <span className="text-gray-700 font-medium">Sena</span>
-        </div>
+        </button>
         <button 
           onClick={handleLogout}
           className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"

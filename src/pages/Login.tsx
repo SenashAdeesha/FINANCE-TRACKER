@@ -1,18 +1,49 @@
 // pages/Login.tsx
 import { useState } from "react";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaGoogle, FaGithub, FaPhone, FaMapMarkerAlt, FaCalendar, FaBriefcase } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaGithub } from "react-icons/fa";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your authentication logic here
-    navigate("/");
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:3001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to login");
+      }
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,128 +66,29 @@ function Login() {
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">Finance Tracker</h1>
           <p className="text-white text-opacity-90">
-            {isSignUp ? "Create your account to get started" : "Welcome back! Please login to your account"}
+            Welcome back! Please login to your account
           </p>
         </div>
 
-        {/* Login/Signup Card */}
+        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
-          <div className="flex mb-6">
-            <button
-              onClick={() => setIsSignUp(false)}
-              className={`flex-1 py-3 font-semibold transition-all ${
-                !isSignUp
-                  ? "text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg"
-                  : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setIsSignUp(true)}
-              className={`flex-1 py-3 font-semibold transition-all ${
-                isSignUp
-                  ? "text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg"
-                  : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
-                    <div className="relative">
-                      <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="John"
-                        required
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      placeholder="Doe"
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                  <div className="relative">
-                    <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="tel"
-                      placeholder="+94 77 123 4567"
-                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth</label>
-                  <div className="relative">
-                    <FaCalendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="date"
-                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Occupation</label>
-                  <div className="relative">
-                    <FaBriefcase className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Software Engineer"
-                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
-                    <div className="relative">
-                      <FaMapMarkerAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Colombo"
-                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
-                    <input
-                      type="text"
-                      placeholder="Sri Lanka"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
               <div className="relative">
                 <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="email"
+                  name="email"
                   placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
                 />
@@ -169,7 +101,10 @@ function Login() {
                 <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                   className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
                 />
@@ -183,68 +118,25 @@ function Login() {
               </div>
             </div>
 
-            {isSignUp && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
-                <div className="relative">
-                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    required
-                    className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!isSignUp && (
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 text-purple-500 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <span className="ml-2 text-gray-600">Remember me</span>
-                </label>
-                <a href="#" className="text-purple-500 hover:text-purple-600 font-semibold">
-                  Forgot password?
-                </a>
-              </div>
-            )}
-
-            {isSignUp && (
-              <div className="flex items-start">
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  required
-                  className="w-4 h-4 text-purple-500 border-gray-300 rounded focus:ring-purple-500 mt-1"
+                  className="w-4 h-4 text-purple-500 border-gray-300 rounded focus:ring-purple-500"
                 />
-                <label className="ml-2 text-sm text-gray-600">
-                  I agree to the{" "}
-                  <a href="#" className="text-purple-500 hover:text-purple-600 font-semibold">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="text-purple-500 hover:text-purple-600 font-semibold">
-                    Privacy Policy
-                  </a>
-                </label>
-              </div>
-            )}
+                <span className="ml-2 text-gray-600">Remember me</span>
+              </label>
+              <a href="#" className="text-purple-500 hover:text-purple-600 font-semibold">
+                Forgot password?
+              </a>
+            </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all shadow-lg"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSignUp ? "Create Account" : "Sign In"}
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -268,33 +160,17 @@ function Login() {
             </button>
           </div>
 
-          {!isSignUp && (
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <button
-                  onClick={() => setIsSignUp(true)}
-                  className="text-purple-500 font-semibold hover:text-purple-600"
-                >
-                  Sign up for free
-                </button>
-              </p>
-            </div>
-          )}
-
-          {isSignUp && (
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <button
-                  onClick={() => setIsSignUp(false)}
-                  className="text-purple-500 font-semibold hover:text-purple-600"
-                >
-                  Sign in
-                </button>
-              </p>
-            </div>
-          )}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link
+                to="/signup"
+                className="text-purple-500 font-semibold hover:text-purple-600"
+              >
+                Sign up for free
+              </Link>
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
