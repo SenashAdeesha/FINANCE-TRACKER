@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -53,6 +54,110 @@ app.get("/api/test-db", async (req, res) => {
             message: "Database connection failed",
             error: error instanceof Error ? error.message : "Unknown error",
         });
+    }
+});
+
+// ============= AUTHENTICATION API =============
+// User registration
+app.post("/api/auth/signup", async (req, res) => {
+    try {
+        const {
+            email,
+            password,
+            firstName,
+            lastName,
+            phone,
+            dateOfBirth,
+            occupation,
+            city,
+            country
+        } = req.body;
+
+        // Validate required fields
+        if (!email || !password || !firstName || !lastName) {
+            return res.status(400).json({ error: "Email, password, first name, and last name are required" });
+        }
+
+        // Check if user already exists
+        const existingUser = await pool.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
+
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({ error: "User with this email already exists" });
+        }
+
+        // Hash password
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+
+        // Generate username from email
+        const username = email.split('@')[0];
+
+        // Insert new user
+        const result = await pool.query(
+            `INSERT INTO users (
+                username, email, password_hash, first_name, last_name, 
+                phone, date_of_birth, occupation, city, country
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING id, username, email, first_name, last_name, phone, 
+                      date_of_birth, occupation, city, country, created_at`,
+            [username, email, passwordHash, firstName, lastName, phone || null, 
+             dateOfBirth || null, occupation || null, city || null, country || null]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully",
+            user: result.rows[0]
+        });
+    } catch (error) {
+        console.error("Error registering user:", error);
+        res.status(500).json({ error: "Failed to register user" });
+    }
+});
+
+// User login
+app.post("/api/auth/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" });
+        }
+
+        // Find user
+        const result = await pool.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        const user = result.rows[0];
+
+        // Compare password
+        const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+        if (!isValidPassword) {
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        // Remove password hash from response
+        const { password_hash, ...userWithoutPassword } = user;
+
+        res.json({
+            success: true,
+            message: "Login successful",
+            user: userWithoutPassword
+        });
+    } catch (error) {
+        console.error("Error logging in:", error);
+        res.status(500).json({ error: "Failed to login" });
     }
 });
 
