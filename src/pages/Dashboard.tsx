@@ -25,19 +25,23 @@ const mockTransactions = [
 
 // Transaction Modal Component
 function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
-  const [step, setStep] = useState<'select' | 'income' | 'expense'>('select');
+  const [step, setStep] = useState<'select' | 'income' | 'expense' | 'savings'>('select');
   const [formData, setFormData] = useState<{
     amount: string;
     date: string;
     category_id: string;
     recurring: boolean;
     description: string;
+    type: string;
+    category: string;
   }>({
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category_id: '',
     recurring: false,
-    description: ''
+    description: '',
+    type: 'savings',
+    category: ''
   });
   const [incomeCategories, setIncomeCategories] = useState<any[]>([]);
   const [expenseCategories, setExpenseCategories] = useState<any[]>([]);
@@ -75,7 +79,9 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
       date: new Date().toISOString().split('T')[0],
       category_id: '',
       recurring: false,
-      description: ''
+      description: '',
+      type: 'savings',
+      category: ''
     });
     onClose();
   };
@@ -83,31 +89,57 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
   const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     
-    if (!formData.amount || !formData.category_id) {
-      alert('Please fill in all required fields');
-      return;
+    if (step === 'savings') {
+      if (!formData.amount || !formData.type || !formData.category) {
+        alert('Please fill in all required fields');
+        return;
+      }
+    } else {
+      if (!formData.amount || !formData.category_id) {
+        alert('Please fill in all required fields');
+        return;
+      }
     }
 
     try {
-      const endpoint = step === 'income' ? 'income' : 'expenses';
-      const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: 1, // Demo user
+      let endpoint = '';
+      let body = {};
+
+      if (step === 'savings') {
+        endpoint = 'savings-investments';
+        body = {
+          user_id: 1,
+          type: formData.type,
+          category: formData.category,
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          date: formData.date,
+          recurring: formData.recurring
+        };
+      } else {
+        endpoint = step === 'income' ? 'income' : 'expenses';
+        body = {
+          user_id: 1,
           category_id: parseInt(formData.category_id),
           amount: parseFloat(formData.amount),
           description: formData.description,
           date: formData.date,
           recurring: formData.recurring
-        })
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
         throw new Error(`Failed to add ${step}`);
       }
 
-      alert(`${step === 'income' ? 'Income' : 'Expense'} added successfully!`);
+      const label = step === 'income' ? 'Income' : step === 'expense' ? 'Expense' : 'Savings';
+      alert(`${label} added successfully!`);
       handleClose();
       onSuccess(); // Refresh dashboard data
     } catch (error) {
@@ -142,7 +174,7 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
           {step === 'select' ? (
             <div className="space-y-3">
               <p className="text-sm text-gray-600">Choose transaction type to continue</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setStep('income')}
@@ -156,6 +188,13 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                   className="p-4 border rounded-md bg-red-600 text-white hover:bg-red-700 border-red-600 shadow-sm"
                 >
                   Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep('savings')}
+                  className="p-4 border rounded-md bg-purple-600 text-white hover:bg-purple-700 border-purple-600 shadow-sm"
+                >
+                  Savings
                 </button>
               </div>
               <div className="flex justify-end">
@@ -177,88 +216,202 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                   <button
                     type="button"
                     onClick={() => setStep('expense')}
-                    className={`px-4 py-2 text-sm font-medium rounded-r-md ${step === 'expense' ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-4 py-2 text-sm font-medium ${step === 'expense' ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                   >
                     Expense
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep('savings')}
+                    className={`px-4 py-2 text-sm font-medium rounded-r-md ${step === 'savings' ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    Savings
                   </button>
                 </div>
               </div>
 
               {/* Form */}
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    name="category_id"
-                    value={formData.category_id}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-                  >
-                    <option value="">Select a category</option>
-                    {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {step === 'savings' ? (
+                  <>
+                    {/* Savings Form */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                      <select
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white"
+                      >
+                        <option value="savings">Savings</option>
+                        <option value="investment">Investment</option>
+                      </select>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      required
-                      min={0}
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white"
+                      >
+                        <option value="">Select a category</option>
+                        <option value="Emergency Fund">Emergency Fund</option>
+                        <option value="Retirement">Retirement</option>
+                        <option value="Education">Education</option>
+                        <option value="Vacation">Vacation</option>
+                        <option value="House Down Payment">House Down Payment</option>
+                        <option value="Investment Portfolio">Investment Portfolio</option>
+                        <option value="Stocks">Stocks</option>
+                        <option value="Bonds">Bonds</option>
+                        <option value="Mutual Funds">Mutual Funds</option>
+                        <option value="Fixed Deposit">Fixed Deposit</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="recurring"
-                      checked={formData.recurring}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Recurring Payment</span>
-                  </label>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
+                        <input
+                          type="number"
+                          name="amount"
+                          value={formData.amount}
+                          onChange={handleChange}
+                          required
+                          min={0}
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input
+                          type="date"
+                          name="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                        />
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={3}
-                    placeholder="Additional details"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                  />
-                </div>
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="recurring"
+                          checked={formData.recurring}
+                          onChange={handleChange}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Recurring Savings</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows={3}
+                        placeholder="Additional details"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Income/Expense Form */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select
+                        name="category_id"
+                        value={formData.category_id}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                      >
+                        <option value="">Select a category</option>
+                        {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
+                        <input
+                          type="number"
+                          name="amount"
+                          value={formData.amount}
+                          onChange={handleChange}
+                          required
+                          min={0}
+                          step="0.01"
+                          placeholder="0.00"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input
+                          type="date"
+                          name="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="recurring"
+                          checked={formData.recurring}
+                          onChange={handleChange}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Recurring Payment</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows={3}
+                        placeholder="Additional details"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="flex justify-end gap-3 pt-2">
                   <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
-                  <button type="button" onClick={handleSubmit} className={`px-4 py-2 rounded-md text-white ${step === 'income' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}>
-                    Add {step === 'income' ? 'Income' : 'Expense'}
+                  <button 
+                    type="button" 
+                    onClick={handleSubmit} 
+                    className={`px-4 py-2 rounded-md text-white ${
+                      step === 'income' ? 'bg-green-600 hover:bg-green-700' : 
+                      step === 'expense' ? 'bg-red-600 hover:bg-red-700' : 
+                      'bg-purple-600 hover:bg-purple-700'
+                    }`}
+                  >
+                    Add {step === 'income' ? 'Income' : step === 'expense' ? 'Expense' : 'Savings'}
                   </button>
                 </div>
               </form>
@@ -471,22 +624,13 @@ function Dashboard() {
           {/* Header Actions */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600 text-sm">Overview of your financial status and recent activities</p>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setModalOpen(true)}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
-              >
-                <FaPlus className="text-sm" />
-                Add Transaction
-              </button>
-              <button
-                onClick={fetchData}
-                className="px-4 py-2 border rounded-lg bg-white text-sm hover:bg-gray-50"
-                title="Refresh dashboard data"
-              >
-                Refresh
-              </button>
-            </div>
+            <button 
+              onClick={() => setModalOpen(true)}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
+            >
+              <FaPlus className="text-sm" />
+              Add Transaction
+            </button>
           </div>
 
           {/* Time Period Filter */}
