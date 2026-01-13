@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Expenses from "./pages/Expenses";
 import Income from "./pages/Income";
 import Savings from "./pages/Savings";
@@ -12,7 +14,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/expenses" element={<Expenses />} />
         <Route path="/income" element={<Income />} />
         <Route path="/savings" element={<Savings />} />
@@ -20,6 +23,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
       </Routes>
     </BrowserRouter>
   );

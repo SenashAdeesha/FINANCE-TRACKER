@@ -2,26 +2,11 @@ import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import DashboardCard from "../components/DashboardCard";
 import IncomeExpensesChart from "../components/IncomeExpensesChart";
 import FinancialInsightsModal from "../components/FinancialInsightsModal";
 import { FaMoneyBillWave, FaShoppingCart, FaWallet, FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye, FaPlus } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
-
-// Mock transaction data (kept for fallback)
-const mockTransactions = [
-  { id: 1, title: 'Salary', amount: 120000, date: '2026-01-05', type: 'income' },
-  { id: 2, title: 'Grocery', amount: -5400, date: '2026-01-03', type: 'expense' },
-  { id: 3, title: 'Freelance', amount: 25000, date: '2025-12-28', type: 'income' },
-  { id: 4, title: 'Electric Bill', amount: -3200, date: '2025-12-20', type: 'expense' },
-  { id: 5, title: 'Bonus', amount: 30000, date: '2025-11-15', type: 'income' },
-  { id: 6, title: 'Shopping', amount: -8900, date: '2025-11-10', type: 'expense' },
-  { id: 7, title: 'Investment', amount: 50000, date: '2025-09-05', type: 'income' },
-  { id: 8, title: 'Car Payment', amount: -15000, date: '2025-08-20', type: 'expense' },
-  { id: 9, title: 'Consulting', amount: 75000, date: '2024-06-10', type: 'income' },
-  { id: 10, title: 'Vacation', amount: -45000, date: '2024-03-15', type: 'expense' },
-];
 
 // Transaction Modal Component
 function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
@@ -161,69 +146,92 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Add Transaction</h2>
-          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">
-            <FaTimes size={18} />
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md">
+      <div className="bg-gradient-to-br from-white/95 via-blue-50/50 to-purple-50/50 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 w-full max-w-lg overflow-hidden relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="flex items-center justify-between px-8 py-6 border-b border-blue-200/50">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <FaPlus className="text-white" size={16} />
+            </div>
+            Add Transaction
+          </h2>
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-all" aria-label="Close">
+            <FaTimes size={20} />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-8 relative z-10">
           {step === 'select' ? (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600">Choose transaction type to continue</p>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-5">
+              <p className="text-sm text-gray-600 font-medium mb-4">Choose transaction type to continue</p>
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => setStep('income')}
-                  className="p-4 border rounded-md bg-green-600 text-white hover:bg-green-700 border-green-600 shadow-sm"
+                  className="p-6 border-2 border-green-300 rounded-2xl bg-gradient-to-br from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-xl shadow-green-500/30 hover:shadow-2xl hover:shadow-green-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-3"
                 >
-                  Income
+                  <FaArrowDown size={24} />
+                  <span className="font-bold text-base">Income</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep('expense')}
-                  className="p-4 border rounded-md bg-red-600 text-white hover:bg-red-700 border-red-600 shadow-sm"
+                  className="p-6 border-2 border-red-300 rounded-2xl bg-gradient-to-br from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700 shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-3"
                 >
-                  Expense
+                  <FaArrowUp size={24} />
+                  <span className="font-bold text-base">Expense</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep('savings')}
-                  className="p-4 border rounded-md bg-purple-600 text-white hover:bg-purple-700 border-purple-600 shadow-sm"
+                  className="p-6 border-2 border-purple-300 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-3"
                 >
-                  Savings
+                  <FaPiggyBank size={24} />
+                  <span className="font-bold text-base">Savings</span>
                 </button>
               </div>
-              <div className="flex justify-end">
-                <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
+              <div className="flex justify-end pt-2">
+                <button type="button" onClick={handleClose} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105">Cancel</button>
               </div>
             </div>
           ) : (
             <>
               {/* Type toggle */}
-              <div className="mb-4">
-                <div className="inline-flex rounded-md border bg-gray-50">
+              <div className="mb-6">
+                <div className="inline-flex rounded-xl border-2 border-gray-200 bg-gray-100 p-1.5 shadow-inner">
                   <button
                     type="button"
                     onClick={() => setStep('income')}
-                    className={`px-4 py-2 text-sm font-medium rounded-l-md ${step === 'income' ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                      step === 'income' 
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg scale-105' 
+                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                    }`}
                   >
                     Income
                   </button>
                   <button
                     type="button"
                     onClick={() => setStep('expense')}
-                    className={`px-4 py-2 text-sm font-medium ${step === 'expense' ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-5 py-2.5 text-sm font-bold transition-all ${
+                      step === 'expense' 
+                        ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg scale-105' 
+                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                    }`}
                   >
                     Expense
                   </button>
                   <button
                     type="button"
                     onClick={() => setStep('savings')}
-                    className={`px-4 py-2 text-sm font-medium rounded-r-md ${step === 'savings' ? 'bg-purple-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                      step === 'savings' 
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg scale-105' 
+                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                    }`}
                   >
                     Savings
                   </button>
@@ -231,18 +239,21 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
               </div>
 
               {/* Form */}
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
                 {step === 'savings' ? (
                   <>
                     {/* Savings Form */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
+                        Type
+                      </label>
                       <select
                         name="type"
                         value={formData.type}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium"
                       >
                         <option value="savings">Savings</option>
                         <option value="investment">Investment</option>
@@ -250,13 +261,16 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
+                        Category
+                      </label>
                       <select
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium"
                       >
                         <option value="">Select a category</option>
                         <option value="Emergency Fund">Emergency Fund</option>
@@ -275,7 +289,10 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
+                          Amount (Rs.)
+                        </label>
                         <input
                           type="number"
                           name="amount"
@@ -285,44 +302,50 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                           min={0}
                           step="0.01"
                           placeholder="0.00"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
+                          Date
+                        </label>
                         <input
                           type="date"
                           name="date"
                           value={formData.date}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-3 cursor-pointer p-4 bg-purple-50/50 rounded-xl border-2 border-purple-200/50 hover:border-purple-300 transition-all">
                         <input
                           type="checkbox"
                           name="recurring"
                           checked={formData.recurring}
                           onChange={handleChange}
-                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                          className="w-5 h-5 text-purple-600 border-gray-300 rounded-lg focus:ring-purple-500 shadow-sm"
                         />
-                        <span className="text-sm font-medium text-gray-700">Recurring Savings</span>
+                        <span className="text-sm font-bold text-gray-700">Recurring Savings</span>
                       </label>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
+                        Note (optional)
+                      </label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
                         rows={3}
                         placeholder="Additional details"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none shadow-sm hover:shadow-md transition-all font-medium"
                       />
                     </div>
                   </>
@@ -330,13 +353,16 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                   <>
                     {/* Income/Expense Form */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <div className={`w-1 h-4 bg-gradient-to-b rounded-full ${step === 'income' ? 'from-green-500 to-emerald-600' : 'from-red-500 to-pink-600'}`}></div>
+                        Category
+                      </label>
                       <select
                         name="category_id"
                         value={formData.category_id}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium ${step === 'income' ? 'focus:ring-green-500 focus:border-green-500' : 'focus:ring-red-500 focus:border-red-500'}`}
                       >
                         <option value="">Select a category</option>
                         {(step === 'income' ? incomeCategories : expenseCategories).map(cat => (
@@ -347,7 +373,10 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className={`w-1 h-4 bg-gradient-to-b rounded-full ${step === 'income' ? 'from-green-500 to-emerald-600' : 'from-red-500 to-pink-600'}`}></div>
+                          Amount (Rs.)
+                        </label>
                         <input
                           type="number"
                           name="amount"
@@ -357,58 +386,74 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                           min={0}
                           step="0.01"
                           placeholder="0.00"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 outline-none shadow-sm hover:shadow-md transition-all font-medium ${step === 'income' ? 'focus:ring-green-500 focus:border-green-500' : 'focus:ring-red-500 focus:border-red-500'}`}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                          <div className={`w-1 h-4 bg-gradient-to-b rounded-full ${step === 'income' ? 'from-green-500 to-emerald-600' : 'from-red-500 to-pink-600'}`}></div>
+                          Date
+                        </label>
                         <input
                           type="date"
                           name="date"
                           value={formData.date}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                          className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 outline-none shadow-sm hover:shadow-md transition-all font-medium ${step === 'income' ? 'focus:ring-green-500 focus:border-green-500' : 'focus:ring-red-500 focus:border-red-500'}`}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className={`flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 transition-all ${
+                        step === 'income' 
+                          ? 'bg-green-50/50 border-green-200/50 hover:border-green-300' 
+                          : 'bg-red-50/50 border-red-200/50 hover:border-red-300'
+                      }`}>
                         <input
                           type="checkbox"
                           name="recurring"
                           checked={formData.recurring}
                           onChange={handleChange}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className={`w-5 h-5 border-gray-300 rounded-lg shadow-sm ${
+                            step === 'income' 
+                              ? 'text-green-600 focus:ring-green-500' 
+                              : 'text-red-600 focus:ring-red-500'
+                          }`}
                         />
-                        <span className="text-sm font-medium text-gray-700">Recurring Payment</span>
+                        <span className="text-sm font-bold text-gray-700">Recurring Payment</span>
                       </label>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                        <div className={`w-1 h-4 bg-gradient-to-b rounded-full ${step === 'income' ? 'from-green-500 to-emerald-600' : 'from-red-500 to-pink-600'}`}></div>
+                        Note (optional)
+                      </label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
                         rows={3}
                         placeholder="Additional details"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                        className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 outline-none resize-none shadow-sm hover:shadow-md transition-all font-medium ${step === 'income' ? 'focus:ring-green-500 focus:border-green-500' : 'focus:ring-red-500 focus:border-red-500'}`}
                       />
                     </div>
                   </>
                 )}
 
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={handleClose} className="px-4 py-2 border rounded-md">Cancel</button>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button type="button" onClick={handleClose} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105">Cancel</button>
                   <button 
                     type="button" 
                     onClick={handleSubmit} 
-                    className={`px-4 py-2 rounded-md text-white ${
-                      step === 'income' ? 'bg-green-600 hover:bg-green-700' : 
-                      step === 'expense' ? 'bg-red-600 hover:bg-red-700' : 
-                      'bg-purple-600 hover:bg-purple-700'
+                    className={`px-6 py-3 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105 border-2 ${
+                      step === 'income' 
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/30 hover:shadow-green-500/40 border-green-400' 
+                        : step === 'expense' 
+                        ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-500/30 hover:shadow-red-500/40 border-red-400' 
+                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/30 hover:shadow-purple-500/40 border-purple-400'
                     }`}
                   >
                     Add {step === 'income' ? 'Income' : step === 'expense' ? 'Expense' : 'Savings'}
@@ -436,8 +481,6 @@ function Dashboard() {
   const [expensesData, setExpensesData] = useState<any[]>([]);
   const [savingsInvestmentsData, setSavingsInvestmentsData] = useState<any[]>([]);
   const [savingsGoalsData, setSavingsGoalsData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch income and expenses data
@@ -446,8 +489,6 @@ function Dashboard() {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
-    setFetchError(null);
     try {
       const [incomeRes, expensesRes, savingsInvRes, savingsGoalsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/income`),
@@ -485,9 +526,6 @@ function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setFetchError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -610,94 +648,103 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 left-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" style={{ animationDelay: "4s" }}></div>
+      </div>
+
       <Sidebar isOpen={sidebarOpen} />
 
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         <Navbar 
-          onToggleSidebar={() => setSidebarOpen((s) => !s)} 
+          onMenuClick={() => setSidebarOpen((s) => !s)} 
           pageTitle="Dashboard"
+          underlineColor="bg-gradient-to-r from-blue-500 to-purple-600"
           onNotificationClick={() => setInsightsModalOpen(true)}
         />
 
-        <main className="p-8 max-w-7xl mx-auto">
-          {/* Header Actions */}
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600 text-sm">Overview of your financial status and recent activities</p>
-            <button 
-              onClick={() => setModalOpen(true)}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
-            >
-              <FaPlus className="text-sm" />
-              Add Transaction
-            </button>
-          </div>
+        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header Actions */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+              <p className="text-gray-600 text-lg">Overview of your financial status and recent activities</p>
+              <button 
+                onClick={() => setModalOpen(true)}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg text-white rounded-xl font-semibold transition-all hover:scale-105 flex items-center gap-2"
+              >
+                <FaPlus className="text-sm" />
+                Add Transaction
+              </button>
+            </div>
 
-          {/* Time Period Filter */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <h3 className="font-semibold text-lg">Filter By</h3>
-              
-              <div className="flex items-center gap-4">
-                {/* Filter Mode Toggle */}
-                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setFilterMode('period')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      filterMode === 'period' 
-                        ? 'bg-blue-600 text-white shadow-sm' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Time Period
-                  </button>
-                  <button
-                    onClick={() => setFilterMode('month')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      filterMode === 'month' 
-                        ? 'bg-blue-600 text-white shadow-sm' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Calendar Month
-                  </button>
-                </div>
-
-                {/* Period Selector */}
-                {filterMode === 'period' ? (
-                  <div className="relative inline-block">
-                    <select
-                      value={timePeriod}
-                      onChange={(e) => setTimePeriod(e.target.value)}
-                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
+            {/* Time Period Filter */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <h3 className="font-semibold text-lg">Filter By</h3>
+                
+                <div className="flex items-center gap-4">
+                  {/* Filter Mode Toggle */}
+                  <div className="flex items-center gap-2 bg-gray-200 rounded-xl p-1.5 shadow-inner">
+                    <button
+                      onClick={() => setFilterMode('period')}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        filterMode === 'period' 
+                          ? 'bg-white text-blue-700 shadow-md scale-105'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
                     >
-                      <optgroup label="Months">
-                        <option value="1 month">Last 1 Month</option>
-                        <option value="2 months">Last 2 Months</option>
-                        <option value="3 months">Last 3 Months</option>
-                        <option value="6 months">Last 6 Months</option>
-                      </optgroup>
-                      <optgroup label="Years">
-                        <option value="1 year">Last 1 Year</option>
-                        <option value="2 years">Last 2 Years</option>
-                        <option value="3 years">Last 3 Years</option>
-                        <option value="4 years">Last 4 Years</option>
-                        <option value="5 years">Last 5 Years</option>
-                      </optgroup>
-                      <optgroup label="Other">
-                        <option value="All time">All Time</option>
-                      </optgroup>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                      <FaChevronDown size={12} />
-                    </div>
+                      Time Period
+                    </button>
+                    <button
+                      onClick={() => setFilterMode('month')}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        filterMode === 'month' 
+                          ? 'bg-white text-blue-700 shadow-md scale-105'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Calendar Month
+                    </button>
                   </div>
-                ) : (
-                  <div className="relative inline-block">
-                    <input
-                      type="month"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
+
+                  {/* Period Selector */}
+                  {filterMode === 'period' ? (
+                    <div className="relative inline-block">
+                      <select
+                        value={timePeriod}
+                        onChange={(e) => setTimePeriod(e.target.value)}
+                        className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
+                      >
+                        <optgroup label="Months">
+                          <option value="1 month">Last 1 Month</option>
+                          <option value="2 months">Last 2 Months</option>
+                          <option value="3 months">Last 3 Months</option>
+                          <option value="6 months">Last 6 Months</option>
+                        </optgroup>
+                        <optgroup label="Years">
+                          <option value="1 year">Last 1 Year</option>
+                          <option value="2 years">Last 2 Years</option>
+                          <option value="3 years">Last 3 Years</option>
+                          <option value="4 years">Last 4 Years</option>
+                          <option value="5 years">Last 5 Years</option>
+                        </optgroup>
+                        <optgroup label="Other">
+                          <option value="All time">All Time</option>
+                        </optgroup>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <FaChevronDown size={12} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative inline-block">
+                      <input
+                        type="month"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
                       max={new Date().toISOString().slice(0, 7)}
                       className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
                     />
@@ -707,90 +754,119 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <DashboardCard
-              title={`Total Income ${filterMode === 'month' 
-                ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
-                : `(${timePeriod})`}`}
-              amount={`Rs. ${stats.income.toLocaleString()}`}
-              icon={<FaMoneyBillWave />}
-              color="bg-white"
+          {/* Stats Cards with Gradient */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div 
               onClick={() => navigate('/income')}
-            />
-            <DashboardCard
-              title={`Total Expenses ${filterMode === 'month' 
-                ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
-                : `(${timePeriod})`}`}
-              amount={`Rs. ${stats.expenses.toLocaleString()}`}
-              icon={<FaShoppingCart />}
-              color="bg-white"
+              className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer hover:scale-105 text-white"
+            >
+              <h3 className="text-sm text-white/90 mb-2">
+                Total Income {filterMode === 'month' 
+                  ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
+                  : `(${timePeriod})`}
+              </h3>
+              <div className="text-3xl font-bold">Rs. {stats.income.toLocaleString()}</div>
+              <div className="text-xs text-white/80 mt-1">{stats.filteredIncome.length} transactions</div>
+            </div>
+
+            <div 
               onClick={() => navigate('/expenses')}
-            />
-            <DashboardCard title="Balance" amount={`Rs. ${stats.balance.toLocaleString()}`} icon={<FaWallet />} color="bg-white" />
-            <DashboardCard title="Savings" amount={`Rs. ${Number(stats.totalSavings || 0).toLocaleString()}`} icon={<FaPiggyBank />} color="bg-white" />
+              className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer hover:scale-105 text-white"
+            >
+              <h3 className="text-sm text-white/90 mb-2">
+                Total Expenses {filterMode === 'month' 
+                  ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})` 
+                  : `(${timePeriod})`}
+              </h3>
+              <div className="text-3xl font-bold">Rs. {stats.expenses.toLocaleString()}</div>
+              <div className="text-xs text-white/80 mt-1">{stats.filteredExpenses.length} transactions</div>
+            </div>
+
+            <div 
+              onClick={() => navigate('/savings')}
+              className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer hover:scale-105 text-white"
+            >
+              <h3 className="text-sm text-white/90 mb-2">Savings</h3>
+              <div className="text-3xl font-bold">Rs. {Number(stats.totalSavings || 0).toLocaleString()}</div>
+              <div className="text-xs text-white/80 mt-1">{savingsInvestmentsData.length} entries</div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <IncomeExpensesChart income={stats.income} expenses={stats.expenses} />
-              
               {/* Transaction Filter */}
-              <div className="mt-6 bg-white rounded-lg p-4 shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-lg">Recent Transactions</h3>
-                  <div className="flex gap-2">
+              <div className="bg-gradient-to-br from-white/90 via-blue-50/50 to-purple-50/50 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl border border-white/60 hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -z-10"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                  <div>
+                    <h3 className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Recent Transactions</h3>
+                    <p className="text-sm text-gray-500 mt-1">Your latest financial activities</p>
+                  </div>
+                  <div className="flex gap-2 bg-white/60 backdrop-blur-md rounded-2xl p-2 shadow-inner border border-white/80">
                     <button
                       onClick={() => setTransactionFilter('all')}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                      className={`px-6 py-2.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 ${
                         transactionFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/40 scale-105'
+                          : 'text-gray-600 hover:bg-white/80 hover:text-gray-900 hover:scale-105'
                       }`}
                     >
+                      <span className="text-sm">●</span>
                       All
                     </button>
                     <button
                       onClick={() => setTransactionFilter('income')}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                      className={`px-6 py-2.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 ${
                         transactionFilter === 'income'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-105'
+                          : 'text-gray-600 hover:bg-white/80 hover:text-gray-900 hover:scale-105'
                       }`}
                     >
+                      <FaArrowDown className="text-xs" />
                       Income
                     </button>
                     <button
                       onClick={() => setTransactionFilter('expense')}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                      className={`px-6 py-2.5 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 ${
                         transactionFilter === 'expense'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/40 scale-105'
+                          : 'text-gray-600 hover:bg-white/80 hover:text-gray-900 hover:scale-105'
                       }`}
                     >
+                      <FaArrowUp className="text-xs" />
                       Expense
                     </button>
                   </div>
                 </div>
                 
                 {/* Transaction List */}
-                <div className="space-y-3">
-                  {getFilteredTransactions().slice(0, 10).map(transaction => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100">
+                <div className="space-y-3 relative z-10">
+                  {getFilteredTransactions().slice(0, 10).map((transaction, index) => (
+                    <div 
+                      key={transaction.id} 
+                      className="flex items-center justify-between p-5 bg-white/70 backdrop-blur-xl hover:bg-white/90 rounded-2xl transition-all duration-300 border border-white/80 hover:shadow-xl hover:scale-[1.02] group"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 ${
+                          transaction.type === 'income' 
+                            ? 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-green-200' 
+                            : 'bg-gradient-to-br from-red-400 to-pink-500 shadow-red-200'
                         }`}>
                           {transaction.type === 'income' ? 
-                            <FaArrowDown className="text-green-600" size={18} /> : 
-                            <FaArrowUp className="text-red-600" size={18} />
+                            <FaArrowDown className="text-white" size={22} /> : 
+                            <FaArrowUp className="text-white" size={22} />
                           }
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-800">{transaction.title}</p>
-                          <p className="text-sm text-gray-500">{transaction.date}</p>
+                          <p className="font-bold text-gray-800 text-lg">{transaction.title}</p>
+                          <p className="text-sm text-gray-600 font-medium">{transaction.date}</p>
                         </div>
                       </div>
-                      <div className={`font-bold ${
+                      <div className={`font-bold text-xl ${
                         transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {transaction.amount > 0 ? '+' : ''}Rs. {Math.abs(transaction.amount).toLocaleString()}
@@ -802,13 +878,22 @@ function Dashboard() {
             </div>
 
             <div>
-              <div className="bg-white rounded-lg p-4 shadow">
-                <h3 className="font-semibold text-lg mb-3">Quick Actions</h3>
-                <div className="flex flex-col gap-2">
+              <div className="bg-gradient-to-br from-white/90 via-blue-50/40 to-purple-50/40 backdrop-blur-2xl rounded-3xl p-6 shadow-2xl border border-white/60 hover:shadow-3xl transition-all relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <h3 className="font-bold text-xl mb-5 text-gray-800 flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <FaPlus className="text-white" size={16} />
+                  </div>
+                  Quick Actions
+                </h3>
+                <div className="flex flex-col gap-3 relative z-10">
                   <button
                     onClick={() => setModalOpen(true)}
-                    className="w-full text-left px-4 py-2 rounded bg-primary text-white"
+                    className="w-full text-left px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all hover:scale-105 flex items-center gap-3"
                   >
+                    <FaPlus className="text-lg" />
                     Add Transaction
                   </button>
 
@@ -823,34 +908,51 @@ function Dashboard() {
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
-                    className="w-full text-left px-4 py-2 rounded border"
+                    className="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-300 hover:border-blue-400 bg-white hover:bg-blue-50/50 font-bold text-gray-700 shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-3"
                   >
+                    <FaChartLine className="text-lg text-blue-600" />
                     Export Report
                   </button>
                 </div>
               </div>
 
+              {/* Chart Section */}
+              <div className="mt-6 bg-gradient-to-br from-white/90 via-green-50/40 to-emerald-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 hover:shadow-3xl transition-all relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-3xl -z-10"></div>
+                <IncomeExpensesChart income={stats.income} expenses={stats.expenses} />
+              </div>
+
               {/* Financial Insights */}
-              <div className="bg-white rounded-lg p-4 shadow mt-4">
-                <h3 className="font-semibold text-lg mb-3">Financial Insights</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <FaChartLine className="text-green-600" size={14} />
+              <div className="bg-gradient-to-br from-white/90 via-orange-50/40 to-pink-50/40 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl border border-white/60 mt-6 hover:shadow-3xl transition-all relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-400/20 to-orange-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <h3 className="font-bold text-2xl mb-6 text-gray-800 flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center shadow-lg">
+                    <FaChartLine className="text-white" size={18} />
+                  </div>
+                  Financial Insights
+                </h3>
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-green-100/80 to-emerald-100/80 rounded-2xl border-2 border-green-200/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <FaChartLine className="text-white" size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-800">Savings Rate</p>
-                      <p className="text-xs text-gray-600">You're saving {stats.savingsRate}% of your income this period</p>
+                      <p className="text-sm font-bold text-gray-800">Savings Rate</p>
+                      <p className="text-sm text-gray-700 mt-2 font-medium">You're saving {stats.savingsRate}% of your income this period</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <FaBullseye className="text-blue-600" size={14} />
+                  <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-blue-100/80 to-purple-100/80 rounded-2xl border-2 border-blue-200/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <FaBullseye className="text-white" size={20} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-800">Top Spending</p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-sm font-bold text-gray-800">Top Spending</p>
+                      <p className="text-sm text-gray-700 mt-2 font-medium">
                         {stats.filteredExpenses.length > 0 
                           ? `Largest expense: ${stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (Rs. ${Number(stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount).toLocaleString()})`
                           : 'No expenses recorded yet'}
@@ -859,13 +961,13 @@ function Dashboard() {
                   </div>
                   
                   {stats.savingsRate < 20 && (
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                        <FaExclamationCircle className="text-yellow-600" size={14} />
+                    <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-yellow-100/80 to-orange-100/80 rounded-2xl border-2 border-yellow-200/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <FaExclamationCircle className="text-white" size={20} />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">Recommendation</p>
-                        <p className="text-xs text-gray-600">Consider reducing expenses to increase your savings rate</p>
+                        <p className="text-sm font-bold text-gray-800">Recommendation</p>
+                        <p className="text-sm text-gray-700 mt-2 font-medium">Consider reducing expenses to increase your savings rate</p>
                       </div>
                     </div>
                   )}
@@ -906,23 +1008,24 @@ function Dashboard() {
               </div>
             </div>
           </div>
+          </div>
         </main>
-      </div>
 
-      <TransactionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
-      <FinancialInsightsModal 
-        isOpen={insightsModalOpen}
-        onClose={() => setInsightsModalOpen(false)}
-        incomeData={incomeData}
-        expensesData={expensesData}
-        savingsInvestmentsData={savingsInvestmentsData}
-        savingsGoalsData={savingsGoalsData}
-        totalIncome={stats.income}
-        totalExpenses={stats.expenses}
-        balance={stats.balance}
-        savingsRate={stats.savingsRate}
-        totalSavings={stats.totalSavings}
-      />
+        <TransactionModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchData} />
+        <FinancialInsightsModal 
+          isOpen={insightsModalOpen}
+          onClose={() => setInsightsModalOpen(false)}
+          incomeData={incomeData}
+          expensesData={expensesData}
+          savingsInvestmentsData={savingsInvestmentsData}
+          savingsGoalsData={savingsGoalsData}
+          totalIncome={stats.income}
+          totalExpenses={stats.expenses}
+          balance={stats.balance}
+          savingsRate={stats.savingsRate}
+          totalSavings={stats.totalSavings}
+        />
+      </div>
     </div>
   );
 }

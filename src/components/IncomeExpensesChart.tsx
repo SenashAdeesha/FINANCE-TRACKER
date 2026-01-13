@@ -1,12 +1,10 @@
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+  PieChart,
+  Pie,
   Cell,
+  Tooltip,
+  Legend,
 } from 'recharts';
 
 function IncomeExpensesChart({ income, expenses }: { income: number; expenses: number }) {
@@ -15,6 +13,7 @@ function IncomeExpensesChart({ income, expenses }: { income: number; expenses: n
     { name: 'Expenses', value: expenses },
   ];
 
+  const COLORS = ['#16a34a', '#dc2626'];
   const formatCurrency = (v: number) => `Rs. ${new Intl.NumberFormat('en-IN').format(v)}`;
 
   return (
@@ -22,22 +21,24 @@ function IncomeExpensesChart({ income, expenses }: { income: number; expenses: n
       <h3 className="font-semibold text-lg mb-3">Income vs Expenses</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 20, left: 12, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-            <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
-            <YAxis
-              tick={{ fill: '#6b7280', fontSize: 12 }}
-              tickFormatter={(v: number) => new Intl.NumberFormat('en-IN').format(v)}
-              domain={[0, 'dataMax']}
-              label={{ value: 'Amount (Rs.)', angle: -90, position: 'insideLeft', fill: '#6b7280' }}
-            />
-            <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+            >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.name === 'Income' ? '#16a34a' : '#dc2626'} />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
-            </Bar>
-          </BarChart>
+            </Pie>
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
+            <Legend />
+          </PieChart>
         </ResponsiveContainer>
       </div>
     </div>

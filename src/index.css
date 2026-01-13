@@ -1,3 +1,87 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Font Size Classes */
+  html.text-sm {
+    font-size: 14px;
+  }
+  
+  html.text-base {
+    font-size: 16px;
+  }
+  
+  html.text-lg {
+    font-size: 18px;
+  }
+
+  /* Dark Mode Styles */
+  html.dark {
+    color-scheme: dark;
+  }
+  
+  html.dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+  
+  html.dark .bg-white {
+    @apply bg-gray-800;
+  }
+  
+  html.dark .bg-gray-100 {
+    @apply bg-gray-800;
+  }
+  
+  html.dark .bg-gray-50 {
+    @apply bg-gray-800;
+  }
+  
+  html.dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+  
+  html.dark .text-gray-800 {
+    @apply text-gray-200;
+  }
+  
+  html.dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+  
+  html.dark .text-gray-600 {
+    @apply text-gray-400;
+  }
+  
+  html.dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+  
+  html.dark .border-gray-300 {
+    @apply border-gray-600;
+  }
+  
+  html.dark .hover\:bg-gray-100:hover {
+    @apply bg-gray-700;
+  }
+  
+  html.dark .hover\:bg-gray-200:hover {
+    @apply bg-gray-600;
+  }
+}
+
+@keyframes blob {
+  0%, 100% { 
+    transform: translate(0px, 0px) scale(1); 
+  }
+  33% { 
+    transform: translate(30px, -50px) scale(1.1); 
+  }
+  66% { 
+    transform: translate(-20px, 20px) scale(0.9); 
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}

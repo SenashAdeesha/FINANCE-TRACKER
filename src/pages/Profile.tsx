@@ -53,7 +53,11 @@ function Profile() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Profile" />
+        <Navbar 
+          onToggleSidebar={() => setSidebarOpen((s) => !s)} 
+          pageTitle="Profile"
+          underlineColor="bg-gradient-to-r from-orange-500 to-pink-600"
+        />
 
         <main className="p-8 max-w-7xl mx-auto">
           {/* Header Section */}
@@ -64,9 +68,9 @@ function Profile() {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
+                className="px-8 py-3.5 bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-xl shadow-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/40 transition-all hover:scale-105 flex items-center gap-3 border-2 border-orange-400"
               >
-                <FaEdit className="text-sm" />
+                <FaEdit className="text-lg" />
                 Edit Profile
               </button>
             )}
@@ -75,8 +79,11 @@ function Profile() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Profile Card */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex flex-col items-center">
+              <div className="bg-gradient-to-br from-white/90 via-orange-50/40 to-pink-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 p-8 relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <div className="flex flex-col items-center relative z-10">
                   <div className="relative">
                     <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
                       {profileData.firstName[0]}{profileData.lastName[0]}
@@ -90,66 +97,68 @@ function Profile() {
                   <h2 className="text-2xl font-bold mt-4 text-gray-800">{profileData.firstName} {profileData.lastName}</h2>
                   <p className="text-gray-600 mt-1">{profileData.occupation}</p>
 
-                  <div className="w-full mt-6 pt-6 border-t space-y-4">
+                  <div className="w-full mt-6 pt-6 border-t border-gray-200/50 space-y-4">
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                        <FaEnvelope className="text-blue-600" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center flex-shrink-0 shadow-md">
+                        <FaEnvelope className="text-orange-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-gray-500">Email</p>
-                        <p className="font-medium text-gray-800 break-all">{profileData.email}</p>
+                        <p className="text-xs text-gray-500 font-medium">Email</p>
+                        <p className="font-bold text-gray-800 break-all">{profileData.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center flex-shrink-0 shadow-md">
                         <FaPhone className="text-green-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-800">{profileData.phone}</p>
+                        <p className="text-xs text-gray-500 font-medium">Phone</p>
+                        <p className="font-bold text-gray-800">{profileData.phone}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center flex-shrink-0 shadow-md">
                         <FaMapMarkerAlt className="text-red-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-gray-500">Location</p>
-                        <p className="font-medium text-gray-800">{profileData.city}, {profileData.country}</p>
+                        <p className="text-xs text-gray-500 font-medium">Location</p>
+                        <p className="font-bold text-gray-800">{profileData.city}, {profileData.country}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center flex-shrink-0 shadow-md">
                         <FaCalendar className="text-purple-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-gray-500">Member Since</p>
-                        <p className="font-medium text-gray-800">January 2025</p>
+                        <p className="text-xs text-gray-500 font-medium">Member Since</p>
+                        <p className="font-bold text-gray-800">January 2025</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-800">
-                    <FaShieldAlt className="text-blue-600" />
+                <div className="mt-6 pt-6 border-t border-gray-200/50">
+                  <h3 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center shadow-md">
+                      <FaShieldAlt className="text-white" size={14} />
+                    </div>
                     Account Status
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Account Type</span>
-                      <span className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full font-medium">Premium</span>
+                      <span className="text-sm text-gray-600 font-medium">Account Type</span>
+                      <span className="px-4 py-1.5 bg-gradient-to-r from-orange-500 to-pink-600 text-white text-xs rounded-xl font-bold shadow-lg shadow-orange-500/30">Premium</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Verification</span>
-                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium flex items-center gap-1">
+                      <span className="text-sm text-gray-600 font-medium">Verification</span>
+                      <span className="px-4 py-1.5 bg-green-100 text-green-700 text-xs rounded-xl font-bold flex items-center gap-1 shadow-md">
                         <FaShieldAlt size={10} />
                         Verified
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Status</span>
-                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">Active</span>
+                      <span className="text-sm text-gray-600 font-medium">Status</span>
+                      <span className="px-4 py-1.5 bg-green-100 text-green-700 text-xs rounded-xl font-bold shadow-md">Active</span>
                     </div>
                   </div>
                 </div>
@@ -158,26 +167,33 @@ function Profile() {
 
             {/* Account Details */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-gradient-to-br from-white/90 via-orange-50/40 to-pink-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 p-8 relative overflow-hidden">
+                {/* Decorative gradient overlay */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-400/20 to-orange-400/20 rounded-full blur-3xl -z-10"></div>
+                
+                <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <FaUser className="text-blue-600" />
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center shadow-lg">
+                      <FaUser className="text-white" size={18} />
+                    </div>
                     Account Details
                   </h2>
                   {isEditing && (
                     <div className="flex gap-2">
                       <button
                         onClick={handleCancel}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105 flex items-center gap-2"
                       >
-                        <FaTimes size={14} />
+                        <FaTimes size={16} />
                         Cancel
                       </button>
                       <button
                         onClick={handleSave}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                        className="px-6 py-3 bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-3 border-2 border-orange-400"
                       >
-                        <FaSave size={14} />
+                        <FaSave size={16} />
                         Save Changes
                       </button>
                     </div>
@@ -187,7 +203,10 @@ function Profile() {
                 <div className="space-y-6">
                   {/* Personal Information Section */}
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Personal Information</h3>
+                    <h3 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
+                      <div className="w-1 h-5 bg-gradient-to-b from-orange-500 to-pink-600 rounded-full"></div>
+                      Personal Information
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
@@ -197,7 +216,7 @@ function Profile() {
                           value={profileData.firstName}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -209,7 +228,7 @@ function Profile() {
                           value={profileData.lastName}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -221,7 +240,7 @@ function Profile() {
                           value={profileData.dateOfBirth}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -236,15 +255,18 @@ function Profile() {
                           value={profileData.occupation}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Contact Information Section */}
-                  <div className="pt-6 border-t">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Contact Information</h3>
+                  <div className="pt-6 border-t border-gray-200/50">
+                    <h3 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
+                      <div className="w-1 h-5 bg-gradient-to-b from-orange-500 to-pink-600 rounded-full"></div>
+                      Contact Information
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -257,7 +279,7 @@ function Profile() {
                           value={profileData.email}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -272,16 +294,17 @@ function Profile() {
                           value={profileData.phone}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Address Information Section */}
-                  <div className="pt-6 border-t">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-                      <FaMapMarkerAlt className="inline mr-2 text-gray-400" size={14} />
+                  <div className="pt-6 border-t border-gray-200/50">
+                    <h3 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
+                      <div className="w-1 h-5 bg-gradient-to-b from-orange-500 to-pink-600 rounded-full"></div>
+                      <FaMapMarkerAlt className="text-gray-400" size={14} />
                       Address Information
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,7 +316,7 @@ function Profile() {
                           value={profileData.address}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -305,7 +328,7 @@ function Profile() {
                           value={profileData.city}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -317,7 +340,7 @@ function Profile() {
                           value={profileData.postalCode}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
 
@@ -329,15 +352,18 @@ function Profile() {
                           value={profileData.country}
                           onChange={handleChange}
                           disabled={!isEditing}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 transition-colors"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 transition-all shadow-sm hover:shadow-md font-medium"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Bio Section */}
-                  <div className="pt-6 border-t">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">About</h3>
+                  <div className="pt-6 border-t border-gray-200/50">
+                    <h3 className="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
+                      <div className="w-1 h-5 bg-gradient-to-b from-orange-500 to-pink-600 rounded-full"></div>
+                      About
+                    </h3>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                       <textarea
@@ -346,10 +372,11 @@ function Profile() {
                         onChange={handleChange}
                         disabled={!isEditing}
                         rows={4}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-600 resize-none transition-colors"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 disabled:bg-gray-50 disabled:text-gray-600 resize-none transition-all shadow-sm hover:shadow-md font-medium"
                       />
                     </div>
                   </div>
+                </div>
                 </div>
               </div>
             </div>

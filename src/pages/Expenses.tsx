@@ -2,7 +2,7 @@
 import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaUtensils, FaCar, FaShoppingBag, FaHome, FaBolt, FaHeartbeat, FaGraduationCap, FaFilm, FaPlane, FaWifi, FaShoppingCart } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -119,25 +119,36 @@ function ExpenseModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Add Expense</h2>
-          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700" aria-label="Close">
-            <FaTimes size={18} />
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md">
+      <div className="bg-gradient-to-br from-white/95 via-red-50/50 to-pink-50/50 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 w-full max-w-lg overflow-hidden relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="flex items-center justify-between px-8 py-6 border-b border-red-200/50">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center shadow-lg">
+              <FaPlus className="text-white" size={16} />
+            </div>
+            {editingExpense ? 'Edit Expense' : 'Add Expense'}
+          </h2>
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-all" aria-label="Close">
+            <FaTimes size={20} />
           </button>
         </div>
 
-        <div className="p-6">
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <div className="p-8 relative z-10">
+          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-pink-600 rounded-full"></div>
+                Category
+              </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium"
               >
                 <option value="">Select a category</option>
                 {categories.map(cat => (
@@ -148,7 +159,10 @@ function ExpenseModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (Rs.)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-pink-600 rounded-full"></div>
+                  Amount (Rs.)
+                </label>
                 <input
                   type="number"
                   name="amount"
@@ -158,52 +172,58 @@ function ExpenseModal({
                   min={0}
                   step="0.01"
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-pink-600 rounded-full"></div>
+                  Date
+                </label>
                 <input
                   type="date"
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer p-4 bg-red-50/50 rounded-xl border-2 border-red-200/50 hover:border-red-300 transition-all">
                 <input
                   type="checkbox"
                   name="recurring"
                   checked={formData.recurring}
                   onChange={handleChange}
-                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  className="w-5 h-5 text-red-600 border-gray-300 rounded-lg focus:ring-red-500 shadow-sm"
                 />
-                <span className="text-sm font-medium text-gray-700">Recurring Payment</span>
+                <span className="text-sm font-bold text-gray-700">Recurring Payment</span>
               </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-pink-600 rounded-full"></div>
+                Note (optional)
+              </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Additional details"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none shadow-sm hover:shadow-md transition-all font-medium"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-4">
               <button 
                 type="button" 
                 onClick={handleClose} 
-                className="px-4 py-2 border rounded-md"
+                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -211,7 +231,7 @@ function ExpenseModal({
               <button 
                 type="button" 
                 onClick={handleSubmit} 
-                className="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400"
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/40 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-red-400"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : editingExpense ? 'Update Expense' : 'Add Expense'}
@@ -320,6 +340,52 @@ function Expense() {
     setEditingExpense(null);
   };
 
+  // Function to get icon based on category name
+  const getCategoryIcon = (categoryName: string) => {
+    const iconClass = "text-red-600";
+    
+    switch (categoryName?.toLowerCase()) {
+      case 'food':
+      case 'dining':
+      case 'groceries':
+        return <FaUtensils className={iconClass} />;
+      case 'transportation':
+      case 'fuel':
+      case 'vehicle':
+        return <FaCar className={iconClass} />;
+      case 'shopping':
+      case 'clothing':
+        return <FaShoppingBag className={iconClass} />;
+      case 'housing':
+      case 'rent':
+      case 'mortgage':
+        return <FaHome className={iconClass} />;
+      case 'utilities':
+      case 'electricity':
+      case 'water':
+        return <FaBolt className={iconClass} />;
+      case 'healthcare':
+      case 'medical':
+      case 'insurance':
+        return <FaHeartbeat className={iconClass} />;
+      case 'education':
+      case 'books':
+        return <FaGraduationCap className={iconClass} />;
+      case 'entertainment':
+      case 'hobbies':
+        return <FaFilm className={iconClass} />;
+      case 'travel':
+      case 'vacation':
+        return <FaPlane className={iconClass} />;
+      case 'internet':
+      case 'phone':
+      case 'subscriptions':
+        return <FaWifi className={iconClass} />;
+      default:
+        return <FaShoppingCart className={iconClass} />;
+    }
+  };
+
   // OLD CODE - REMOVED
   // const expenseData = [
   //   { id: 1, source: "Salary", amount: 85000, date: "2026-01-01", category: "Salary", recurring: true },
@@ -405,16 +471,20 @@ function Expense() {
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
-        <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Expenses" />
+        <Navbar 
+          onToggleSidebar={() => setSidebarOpen((s) => !s)} 
+          pageTitle="Expenses"
+          underlineColor="bg-gradient-to-r from-red-500 to-pink-600"
+        />
 
         <main className="p-8 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600 text-sm">Monitor and categorize all your spending</p>
             <button 
               onClick={() => setModalOpen(true)}
-              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2"
+              className="px-8 py-3.5 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-xl shadow-red-500/30 hover:shadow-2xl hover:shadow-red-500/40 transition-all hover:scale-105 flex items-center gap-3 border-2 border-red-400"
             >
-              <FaPlus className="text-sm" />
+              <FaPlus className="text-lg" />
               Add Expense
             </button>
           </div>
@@ -426,12 +496,12 @@ function Expense() {
               
               <div className="flex items-center gap-4">
                 {/* Filter Mode Toggle */}
-                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-gray-200 rounded-xl p-1.5 shadow-inner">
                   <button
                     onClick={() => setFilterMode('period')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       filterMode === 'period' 
-                        ? 'bg-red-600 text-white shadow-sm' 
+                        ? 'bg-white text-red-700 shadow-md scale-105'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -439,9 +509,9 @@ function Expense() {
                   </button>
                   <button
                     onClick={() => setFilterMode('month')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       filterMode === 'month' 
-                        ? 'bg-red-600 text-white shadow-sm' 
+                        ? 'bg-white text-red-700 shadow-md scale-105'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -494,46 +564,50 @@ function Expense() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-sm text-gray-600 mb-2">
+            <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
+              <h3 className="text-sm text-white/90 mb-2">
                 Total Expense ({filterMode === 'month' 
                   ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
                   : timePeriod})
               </h3>
-              <div className="text-3xl font-bold text-red-600">Rs. {totalExpense.toLocaleString()}</div>
-              <div className="text-xs text-gray-600 mt-1">{filteredByTime.length} transactions</div>
+              <div className="text-3xl font-bold">Rs. {totalExpense.toLocaleString()}</div>
+              <div className="text-xs text-white/80 mt-1">{filteredByTime.length} transactions</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm text-gray-600 mb-2">Recurring Expense</h3>
+            <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
+              <h3 className="text-sm text-white/90 mb-2">Recurring Expense</h3>
               <div className="text-3xl font-bold">Rs. {recurringExpense.toLocaleString()}</div>
-              <div className="text-xs text-gray-600 mt-1">From recurring sources</div>
+              <div className="text-xs text-white/80 mt-1">From recurring sources</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-sm text-gray-600 mb-2">One-time Expense</h3>
+            <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
+              <h3 className="text-sm text-white/90 mb-2">One-time Expense</h3>
               <div className="text-3xl font-bold">Rs. {oneTimeExpense.toLocaleString()}</div>
-              <div className="text-xs text-gray-600 mt-1">From one-time sources</div>
+              <div className="text-xs text-white/80 mt-1">From one-time sources</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-6 border-b">
+            <div className="lg:col-span-2 bg-gradient-to-br from-white/90 via-red-50/40 to-pink-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
+              {/* Decorative gradient overlay */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-400/20 to-red-400/20 rounded-full blur-3xl -z-10"></div>
+              
+              <div className="p-8 border-b border-white/50 backdrop-blur-xl relative z-10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold">Recent Expense</h2>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">Recent Expenses</h2>
+                    <p className="text-sm text-gray-600 mt-1 font-medium">
                       Showing {filteredExpense.length} of {expenseData.length} total records
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700">Filter:</label>
+                    <label className="text-sm font-semibold text-gray-700">Filter:</label>
                     <div className="relative inline-block">
                       <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 cursor-pointer shadow-sm"
+                        className="appearance-none bg-white border-2 border-red-200 rounded-xl px-6 py-3 pr-12 text-sm font-bold text-gray-800 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 cursor-pointer shadow-lg hover:shadow-xl transition-all"
                       >
                         <option value="All">All Categories</option>
                         {categories.map(cat => (
@@ -547,7 +621,7 @@ function Expense() {
                   </div>
                 </div>
               </div>
-              <div className="p-6">
+              <div className="p-8 relative z-10">
                 {loading ? (
                   <div className="text-center py-8 text-gray-500">Loading expense data...</div>
                 ) : filteredExpense.length === 0 ? (
@@ -563,22 +637,25 @@ function Expense() {
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {filteredExpense.map((expense) => (
-                      <div key={expense.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                      <div key={expense.id} className="flex items-center justify-between p-5 bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl hover:bg-white/90 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group">
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <div className="font-medium">{expense.category_icon} {expense.description || expense.category_name}</div>
+                            <div className="text-2xl">{getCategoryIcon(expense.category_name)}</div>
+                            <div>
+                              <div className="font-bold text-gray-800 text-lg">{expense.description || expense.category_name}</div>
+                              <div className="text-sm text-gray-600 mt-0.5 font-medium">
+                                {expense.category_name} • {new Date(expense.date).toLocaleDateString()}
+                              </div>
+                            </div>
                             {expense.recurring && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded">Recurring</span>
+                              <span className="px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-600 text-white text-xs rounded-full font-semibold shadow-md">Recurring</span>
                             )}
-                          </div>
-                          <div className="text-sm text-gray-600 mt-1">
-                            {expense.category_name} • {new Date(expense.date).toLocaleDateString()}
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="text-lg font-semibold text-red-600">+Rs. {Number(expense.amount).toLocaleString()}</div>
+                          <div className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">-Rs. {Number(expense.amount).toLocaleString()}</div>
                           <div className="flex gap-2">
                             <button 
                               onClick={() => handleEdit(expense)}
@@ -601,27 +678,39 @@ function Expense() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">Expense by Category</h2>
+            <div className="bg-gradient-to-br from-white/90 via-red-50/40 to-pink-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 p-8 relative overflow-hidden">
+              {/* Decorative gradient overlay */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl -z-10"></div>
+              
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-6">Expense by Category</h2>
               {loading ? (
                 <div className="text-center py-4 text-gray-500">Loading...</div>
               ) : categoryBreakdown.length === 0 ? (
                 <div className="text-center py-4 text-gray-500">No expense data available</div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {categoryBreakdown.map((cat) => {
                     const percentage = totalExpense > 0 ? (cat.amount / totalExpense) * 100 : 0;
                     return (
-                      <div key={cat.id}>
+                      <div key={cat.id} className="group">
                         <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium">{cat.icon} {cat.name}</span>
-                          <span className="text-sm text-gray-600">{percentage.toFixed(0)}%</span>
+                          <span className="text-sm font-bold text-gray-800">{cat.icon} {cat.name}</span>
+                          <span className="text-sm font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">{percentage.toFixed(1)}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="h-2 rounded-full" style={{ width: `${percentage}%`, backgroundColor: cat.color }}></div>
+                        <div className="w-full bg-gray-200/50 rounded-full h-3 shadow-inner backdrop-blur-sm overflow-hidden">
+                          <div 
+                            className="h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden"
+                            style={{ 
+                              width: `${percentage}%`, 
+                              backgroundColor: cat.color,
+                              boxShadow: `0 0 10px ${cat.color}40`
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
+                          </div>
                         </div>
-                        <div className="text-right mt-1">
-                          <span className="text-sm font-semibold">Rs. {cat.amount.toLocaleString()}</span>
+                        <div className="text-right mt-2">
+                          <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
                         </div>
                       </div>
                     );
