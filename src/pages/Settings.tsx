@@ -14,7 +14,9 @@ import {
   FaClock,
   FaChevronRight,
   FaSave,
-  FaUndo
+  FaUndo,
+  FaMoon,
+  FaSun
 } from "react-icons/fa";
 
 function Settings() {
@@ -23,17 +25,13 @@ function Settings() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'general' | 'security' | 'notifications' | 'preferences'>(tabFromUrl || 'general');
   
-  useEffect(() => {
-    const tab = searchParams.get("tab") as 'general' | 'security' | 'notifications' | 'preferences' | null;
-    if (tab && ['general', 'security', 'notifications', 'preferences'].includes(tab)) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
+  const [darkMode, setDarkMode] = useState(false);
+  const [autoTheme, setAutoTheme] = useState(false);
+  const [fontSize, setFontSize] = useState('medium');
+  const [viewDensity, setViewDensity] = useState('comfortable');
+  const [animations, setAnimations] = useState(true);
   
   const [formData, setFormData] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+94 77 123 4567",
     currency: "LKR",
     language: "English",
     dateFormat: "DD/MM/YYYY",
@@ -48,6 +46,49 @@ function Settings() {
     weeklyReports: false,
     transactionAlerts: true
   });
+  
+  useEffect(() => {
+    const tab = searchParams.get("tab") as 'general' | 'security' | 'notifications' | 'preferences' | null;
+    if (tab && ['general', 'security', 'notifications', 'preferences'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  // Auto theme detection
+  useEffect(() => {
+    if (autoTheme) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setDarkMode(mediaQuery.matches);
+      
+      const handler = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, [autoTheme]);
+
+  // Apply dark mode to document
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  // Apply font size
+  useEffect(() => {
+    const sizes = { small: '14px', medium: '16px', large: '18px' };
+    document.documentElement.style.fontSize = sizes[fontSize as keyof typeof sizes];
+  }, [fontSize]);
+
+  // Apply animations preference
+  useEffect(() => {
+    if (!animations) {
+      document.documentElement.style.setProperty('--transition-speed', '0s');
+    } else {
+      document.documentElement.style.setProperty('--transition-speed', '0.3s');
+    }
+  }, [animations]);
 
   const handleNotificationChange = (key: string) => {
     setNotifications({
@@ -70,32 +111,57 @@ function Settings() {
     { id: 'preferences' as const, label: 'Preferences', icon: <FaPalette /> },
   ];
 
+  // View density padding
+  const densityPadding = {
+    compact: 'p-4',
+    comfortable: 'p-8',
+    spacious: 'p-12',
+  };
+
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className={`flex min-h-screen transition-colors ${
+      darkMode ? 'bg-gray-900' : 'bg-gray-100'
+    }`}>
       <Sidebar isOpen={sidebarOpen} />
 
       <div className="flex-1">
         <Navbar onToggleSidebar={() => setSidebarOpen((s) => !s)} pageTitle="Settings" />
 
-        <main className="p-8 max-w-7xl mx-auto">
+        <main className={`${densityPadding[viewDensity as keyof typeof densityPadding]} max-w-7xl mx-auto transition-all ${
+          animations ? 'duration-300' : 'duration-0'
+        }`}>
           {/* Header */}
-          <div className="mb-8">
-            <p className="text-gray-600">Manage your account settings and preferences</p>
+          <div className={`mb-8 transition-colors ${
+            animations ? 'duration-300' : 'duration-0'
+          }`}>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+              Manage your account settings and preferences
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar Navigation */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className={`rounded-lg shadow-sm border overflow-hidden transition-colors ${
+                animations ? 'duration-300' : 'duration-0'
+              } ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              }`}>
                 <nav className="flex flex-col">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center gap-3 px-6 py-4 text-left transition-all ${
+                        animations ? 'duration-300' : 'duration-0'
+                      } ${
                         activeTab === tab.id
-                          ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? (darkMode 
+                              ? 'bg-blue-900 text-blue-400 border-r-4 border-blue-500 font-medium'
+                              : 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 font-medium')
+                          : (darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
                       }`}
                     >
                       <span className="text-lg">{tab.icon}</span>
@@ -109,72 +175,291 @@ function Settings() {
 
             {/* Content Area */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className={`rounded-lg shadow-sm border transition-colors ${
+                animations ? 'duration-300' : 'duration-0'
+              } ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              }`}>
                 {/* General Settings */}
                 {activeTab === 'general' && (
                   <div className="p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FaUser className="text-blue-600 text-lg" />
+                    <div className={`flex items-center gap-3 mb-6 transition-colors ${
+                      animations ? 'duration-300' : 'duration-0'
+                    }`}>
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        darkMode ? 'bg-blue-900' : 'bg-blue-100'
+                      }`}>
+                        <FaUser className={`text-lg ${
+                          darkMode ? 'text-blue-400' : 'text-blue-600'
+                        }`} />
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold text-gray-900">General Settings</h2>
-                        <p className="text-sm text-gray-600">Update your personal information</p>
+                        <h2 className={`text-xl font-semibold ${
+                          darkMode ? 'text-gray-100' : 'text-gray-900'
+                        }`}>General Settings</h2>
+                        <p className={`text-sm ${
+                          darkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>Manage general application settings</p>
                       </div>
                     </div>
 
                     <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          />
-                        </div>
-                      </div>
-
+                      {/* Appearance Settings */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
+                        <div className={`flex items-center gap-3 mb-4 transition-colors ${
+                          animations ? 'duration-300' : 'duration-0'
+                        }`}>
+                          <FaPalette className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
+                          <h3 className={`font-semibold ${
+                            darkMode ? 'text-gray-100' : 'text-gray-900'
+                          }`}>Appearance</h3>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {/* Dark Mode Toggle */}
+                          <div className={`border rounded-lg p-5 transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode 
+                              ? 'border-gray-700 hover:border-gray-600' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
+                                  darkMode ? 'bg-gray-800' : 'bg-yellow-100'
+                                }`}>
+                                  {darkMode ? (
+                                    <FaMoon className="text-yellow-300 text-xl" />
+                                  ) : (
+                                    <FaSun className="text-yellow-600 text-xl" />
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className={`font-semibold ${
+                                    darkMode ? 'text-gray-100' : 'text-gray-900'
+                                  }`}>
+                                    {darkMode ? 'Dark Mode' : 'Light Mode'}
+                                  </h4>
+                                  <p className={`text-sm ${
+                                    darkMode ? 'text-gray-400' : 'text-gray-600'
+                                  }`}>
+                                    {darkMode 
+                                      ? 'Switch to light mode for better visibility' 
+                                      : 'Switch to dark mode to reduce eye strain'
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={darkMode}
+                                  onChange={() => setDarkMode(!darkMode)}
+                                  className="sr-only peer"
+                                />
+                                <div className={`w-14 h-7 rounded-full transition-colors ${
+                                  darkMode ? 'bg-blue-600' : 'bg-gray-200'
+                                }`}></div>
+                                <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-7 flex items-center justify-center">
+                                  {darkMode ? (
+                                    <FaMoon className="text-blue-600 text-xs" />
+                                  ) : (
+                                    <FaSun className="text-yellow-500 text-xs" />
+                                  )}
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Auto Theme */}
+                          <div className={`border rounded-lg p-5 transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode 
+                              ? 'border-gray-700 hover:border-gray-600' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className={`font-semibold ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>Auto Theme</h4>
+                                <p className={`text-sm ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Automatically switch theme based on system preferences</p>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={autoTheme}
+                                  onChange={() => setAutoTheme(!autoTheme)}
+                                  className="sr-only peer"
+                                />
+                                <div className={`w-14 h-7 rounded-full transition-colors ${
+                                  autoTheme ? 'bg-blue-600' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')
+                                }`}></div>
+                                <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-7"></div>
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Font Size */}
+                          <div className={`border rounded-lg p-5 transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode 
+                              ? 'border-gray-700 hover:border-gray-600' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}>
+                            <div>
+                              <h4 className={`font-semibold mb-3 ${
+                                darkMode ? 'text-gray-100' : 'text-gray-900'
+                              }`}>Font Size</h4>
+                              <p className={`text-sm mb-4 ${
+                                darkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>Adjust text size for better readability</p>
+                              <div className="grid grid-cols-3 gap-3">
+                                {[
+                                  { value: 'small', label: 'Small', size: 'text-sm' },
+                                  { value: 'medium', label: 'Medium', size: 'text-base' },
+                                  { value: 'large', label: 'Large', size: 'text-lg' },
+                                ].map((size) => (
+                                  <button
+                                    key={size.value}
+                                    onClick={() => setFontSize(size.value)}
+                                    className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                                      animations ? 'duration-300' : 'duration-0'
+                                    } ${
+                                      fontSize === size.value
+                                        ? (darkMode
+                                            ? 'border-blue-600 bg-blue-900 text-blue-400 font-semibold'
+                                            : 'border-blue-600 bg-blue-50 text-blue-700 font-semibold')
+                                        : (darkMode
+                                            ? 'border-gray-700 hover:border-gray-600 text-gray-300'
+                                            : 'border-gray-200 hover:border-gray-300 text-gray-700')
+                                    }`}
+                                  >
+                                    <span className={size.size}>{size.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* View Density */}
+                          <div className={`border rounded-lg p-5 transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode 
+                              ? 'border-gray-700 hover:border-gray-600' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}>
+                            <div>
+                              <h4 className={`font-semibold mb-3 ${
+                                darkMode ? 'text-gray-100' : 'text-gray-900'
+                              }`}>View Density</h4>
+                              <p className={`text-sm mb-4 ${
+                                darkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>Choose how compact you want the interface</p>
+                              <div className="grid grid-cols-3 gap-3">
+                                {[
+                                  { value: 'compact', label: 'Compact' },
+                                  { value: 'comfortable', label: 'Comfortable' },
+                                  { value: 'spacious', label: 'Spacious' },
+                                ].map((density) => (
+                                  <button
+                                    key={density.value}
+                                    onClick={() => setViewDensity(density.value)}
+                                    className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                                      animations ? 'duration-300' : 'duration-0'
+                                    } ${
+                                      viewDensity === density.value
+                                        ? (darkMode
+                                            ? 'border-blue-600 bg-blue-900 text-blue-400 font-semibold'
+                                            : 'border-blue-600 bg-blue-50 text-blue-700 font-semibold')
+                                        : (darkMode
+                                            ? 'border-gray-700 hover:border-gray-600 text-gray-300'
+                                            : 'border-gray-200 hover:border-gray-300 text-gray-700')
+                                    }`}
+                                  >
+                                    {density.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Animations */}
+                          <div className={`border rounded-lg p-5 transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode 
+                              ? 'border-gray-700 hover:border-gray-600' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className={`font-semibold ${
+                                  darkMode ? 'text-gray-100' : 'text-gray-900'
+                                }`}>Animations</h4>
+                                <p className={`text-sm ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-600'
+                                }`}>Enable smooth transitions and animations</p>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={animations}
+                                  onChange={() => setAnimations(!animations)}
+                                  className="sr-only peer"
+                                />
+                                <div className={`w-14 h-7 rounded-full transition-colors ${
+                                  animations ? 'bg-blue-600' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')
+                                }`}></div>
+                                <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-7"></div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="pt-6 border-t">
+                      {/* Account Actions */}
+                      <div className={`pt-6 border-t transition-colors ${
+                        animations ? 'duration-300' : 'duration-0'
+                      } ${
+                        darkMode ? 'border-gray-700' : 'border-gray-200'
+                      }`}>
                         <div className="flex items-center gap-3 mb-4">
-                          <FaDatabase className="text-gray-400" />
-                          <h3 className="font-semibold text-gray-900">Account Actions</h3>
+                          <FaDatabase className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
+                          <h3 className={`font-semibold ${
+                            darkMode ? 'text-gray-100' : 'text-gray-900'
+                          }`}>Account Actions</h3>
                         </div>
                         <div className="space-y-3">
-                          <button className="w-full text-left px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium">
-                            Export My Data
+                          <button className={`w-full text-left px-4 py-3 rounded-lg font-medium flex items-center justify-between group transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode ? 'bg-blue-900 text-blue-400 hover:bg-blue-800' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}>
+                            <span>Export My Data</span>
+                            <FaChevronRight className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                              darkMode ? 'text-blue-400' : 'text-blue-600'
+                            }`} />
                           </button>
-                          <button className="w-full text-left px-4 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium">
-                            Deactivate Account
+                          <button className={`w-full text-left px-4 py-3 rounded-lg font-medium flex items-center justify-between group transition-all ${
+                            animations ? 'duration-300' : 'duration-0'
+                          } ${
+                            darkMode
+                              ? 'bg-red-900 text-red-400 hover:bg-red-800'
+                              : 'bg-red-50 text-red-700 hover:bg-red-100'
+                          }`}>
+                            <span>Deactivate Account</span>
+                            <FaChevronRight className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                              darkMode ? 'text-red-400' : 'text-red-600'
+                            }`} />
                           </button>
                         </div>
                       </div>
