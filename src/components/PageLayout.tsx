@@ -10,15 +10,21 @@ interface PageLayoutProps {
   title?: string;
   subtitle?: string;
   headerActions?: ReactNode;
+  underlineColor?: string;
+  onNotificationClick?: () => void;
+  hideContentTitle?: boolean;
 }
 
-function PageLayout({ 
-  children, 
-  sidebarOpen, 
-  setSidebarOpen, 
-  title, 
+function PageLayout({
+  children,
+  sidebarOpen,
+  setSidebarOpen,
+  title,
   subtitle,
-  headerActions 
+  headerActions,
+  underlineColor,
+  onNotificationClick,
+  hideContentTitle
 }: PageLayoutProps) {
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-hidden">
@@ -30,17 +36,22 @@ function PageLayout({
       </div>
 
       <Sidebar isOpen={sidebarOpen} />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-        <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        
+        <Navbar
+          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          pageTitle={title}
+          underlineColor={underlineColor || "bg-gradient-to-r from-blue-500 to-purple-600"}
+          onNotificationClick={onNotificationClick}
+        />
+
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
-            {(title || subtitle || headerActions) && (
+            {((title && !hideContentTitle) || subtitle || headerActions) && (
               <div className="mb-8">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    {title && (
+                    {title && !hideContentTitle && (
                       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                         {title}
                       </h1>
@@ -57,7 +68,7 @@ function PageLayout({
                 </div>
               </div>
             )}
-            
+
             {children}
           </div>
         </main>

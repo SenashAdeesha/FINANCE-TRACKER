@@ -9,6 +9,8 @@ import Savings from "./pages/Savings";
 import Profile from "./pages/Profile";
 import TransactionsPage from "./pages/TransactionsPage";
 import Settings from "./pages/Settings";
+import RecycleBin from "./pages/RecycleBin";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -22,8 +24,10 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/transactions" element={<TransactionsPage />} />
+        <Route path="/recycle-bin" element={<RecycleBin />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );

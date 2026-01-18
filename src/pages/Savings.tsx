@@ -1,8 +1,7 @@
 // pages/Savings.tsx
 import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaPiggyBank, FaChartLine, FaUniversity, FaHome, FaCar, FaGraduationCap, FaUmbrella, FaWallet, FaCoins, FaChartBar, FaBitcoin, FaGem } from "react-icons/fa";
+import PageLayout from "../components/PageLayout";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -45,24 +44,27 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
 
   const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
+
     if (!formData.amount || !formData.category) {
       alert('Please fill in all required fields');
       return;
     }
 
     try {
-      const url = editingEntry 
+      const url = editingEntry
         ? `${API_BASE_URL}/savings-investments/${editingEntry.id}`
         : `${API_BASE_URL}/savings-investments`;
-      
+
       const method = editingEntry ? 'PUT' : 'POST';
-      
+
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user.id || 1;
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: 1,
+          user_id: userId,
           type: step,
           category: formData.category,
           amount: parseFloat(formData.amount),
@@ -102,13 +104,13 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md">
-      <div className="bg-gradient-to-br from-white/95 via-purple-50/50 to-indigo-50/50 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 w-full max-w-lg overflow-hidden relative">
+      <div className="bg-gradient-to-br from-white/95 via-cyan-50/50 to-blue-50/50 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 w-full max-w-lg overflow-hidden relative">
         {/* Decorative gradient overlay */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-3xl -z-10"></div>
-        
-        <div className="flex items-center justify-between px-8 py-6 border-b border-purple-200/50">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl -z-10"></div>
+
+        <div className="flex items-center justify-between px-8 py-6 border-b border-cyan-200/50">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
               {step === 'savings' ? <FaPiggyBank className="text-white" size={16} /> : step === 'investment' ? <FaChartLine className="text-white" size={16} /> : <FaPlus className="text-white" size={16} />}
             </div>
             {editingEntry ? 'Edit' : 'Add'} {step === 'select' ? 'Entry' : (step === 'savings' ? 'Savings' : 'Investment')}
@@ -126,7 +128,7 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
                 <button
                   type="button"
                   onClick={() => setStep('savings')}
-                  className="p-6 border-2 border-purple-300 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-3"
+                  className="p-6 border-2 border-cyan-300 rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-600 text-white hover:from-cyan-700 hover:to-blue-700 shadow-xl shadow-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-3"
                 >
                   <FaPiggyBank size={28} />
                   <span className="font-bold text-lg">Savings</span>
@@ -152,22 +154,20 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
                   <button
                     type="button"
                     onClick={() => setStep('savings')}
-                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                      step === 'savings' 
-                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg scale-105' 
-                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
-                    }`}
+                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${step === 'savings'
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg scale-105'
+                      : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                      }`}
                   >
                     Savings
                   </button>
                   <button
                     type="button"
                     onClick={() => setStep('investment')}
-                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                      step === 'investment' 
-                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg scale-105' 
-                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
-                    }`}
+                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${step === 'investment'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg scale-105'
+                      : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                      }`}
                   >
                     Investment
                   </button>
@@ -175,103 +175,102 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
               </div>
 
               {/* Form */}
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
-                Category
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium"
-              >
-                <option value="">Select a category</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+              <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none bg-white shadow-sm hover:shadow-md transition-all font-medium"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
-                  Amount (Rs.)
-                </label>
-                <input
-                  type="number"
-                  name="amount"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  required
-                  min={0}
-                  step="0.01"
-                  placeholder="0.00"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
-                  Date
-                </label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                      Amount (Rs.)
+                    </label>
+                    <input
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      required
+                      min={0}
+                      step="0.01"
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none shadow-sm hover:shadow-md transition-all font-medium"
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer p-4 bg-purple-50/50 rounded-xl border-2 border-purple-200/50 hover:border-purple-300 transition-all">
-                <input
-                  type="checkbox"
-                  name="recurring"
-                  checked={formData.recurring}
-                  onChange={handleChange}
-                  className="w-5 h-5 text-purple-600 border-gray-300 rounded-lg focus:ring-purple-500 shadow-sm"
-                />
-                <span className="text-sm font-bold text-gray-700">Recurring {step === 'savings' ? 'Savings' : 'Investment'}</span>
-              </label>
-            </div>
+                <div>
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-cyan-50/50 rounded-xl border-2 border-cyan-200/50 hover:border-cyan-300 transition-all">
+                    <input
+                      type="checkbox"
+                      name="recurring"
+                      checked={formData.recurring}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-cyan-600 border-gray-300 rounded-lg focus:ring-cyan-500 shadow-sm"
+                    />
+                    <span className="text-sm font-bold text-gray-700">Recurring {step === 'savings' ? 'Savings' : 'Investment'}</span>
+                  </label>
+                </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-full"></div>
-                Note (optional)
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                placeholder="Additional details"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none shadow-sm hover:shadow-md transition-all font-medium"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                    Note (optional)
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="Additional details"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none resize-none shadow-sm hover:shadow-md transition-all font-medium"
+                  />
+                </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button type="button" onClick={handleClose} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105">Cancel</button>
-              <button 
-                type="button" 
-                onClick={handleSubmit} 
-                className={`px-6 py-3 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105 border-2 ${
-                  step === 'savings' 
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-purple-500/30 hover:shadow-purple-500/40 border-purple-400' 
-                    : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/30 hover:shadow-green-500/40 border-green-400'
-                }`}
-              >
-                {editingEntry ? 'Update' : 'Add'} {step === 'savings' ? 'Savings' : 'Investment'}
-              </button>
-            </div>
-          </form>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button type="button" onClick={handleClose} className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all hover:scale-105">Cancel</button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className={`px-6 py-3 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105 border-2 ${step === 'savings'
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-cyan-500/30 hover:shadow-cyan-500/40 border-cyan-400'
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/30 hover:shadow-green-500/40 border-green-400'
+                      }`}
+                  >
+                    {editingEntry ? 'Update' : 'Add'} {step === 'savings' ? 'Savings' : 'Investment'}
+                  </button>
+                </div>
+              </form>
             </>
           )}
         </div>
@@ -288,7 +287,7 @@ function Savings() {
   // Function to get icon based on category
   const getCategoryIcon = (category: string, type: string) => {
     const iconClass = "text-2xl";
-    
+
     // Savings categories
     if (type === 'savings') {
       switch (category) {
@@ -302,7 +301,7 @@ function Savings() {
         default: return <FaWallet className={iconClass} />;
       }
     }
-    
+
     // Investment categories
     switch (category) {
       case 'Stocks': return <FaChartBar className={iconClass} />;
@@ -345,7 +344,7 @@ function Savings() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this entry?')) return;
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/savings-investments/${id}`, {
         method: 'DELETE'
@@ -377,7 +376,7 @@ function Savings() {
       startOfMonth.setHours(0, 0, 0, 0);
       const endOfMonth = new Date(year, month, 0);
       endOfMonth.setHours(23, 59, 59, 999);
-      
+
       return savingsData.filter(item => {
         const itemDate = new Date(item.date);
         return itemDate >= startOfMonth && itemDate <= endOfMonth;
@@ -386,7 +385,7 @@ function Savings() {
       // Filter by rolling time period
       const now = new Date();
       now.setHours(23, 59, 59, 999); // End of today
-      
+
       const monthsMap: Record<string, number> = {
         '1 month': 1,
         '2 months': 2,
@@ -401,11 +400,11 @@ function Savings() {
       };
 
       const monthsBack = monthsMap[timePeriod] || 1;
-      
+
       if (timePeriod === 'All time') {
         return savingsData;
       }
-      
+
       const cutoffDate = new Date(now);
       cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
       cutoffDate.setHours(0, 0, 0, 0); // Start of that day
@@ -423,17 +422,17 @@ function Savings() {
   const calculateCategoryBreakdown = (type: 'savings' | 'investment') => {
     const filtered = filteredByTime.filter(item => item.type === type);
     const categoryMap = new Map<string, number>();
-    
+
     filtered.forEach(item => {
       const current = categoryMap.get(item.category) || 0;
       categoryMap.set(item.category, current + Number(item.amount));
     });
-    
+
     const colors = [
-      'bg-blue-500', 'bg-teal-500', 'bg-indigo-500', 'bg-purple-500', 
-      'bg-green-500', 'bg-yellow-500', 'bg-pink-500', 'bg-red-500'
+      'bg-cyan-500', 'bg-blue-500', 'bg-indigo-500', 'bg-teal-500',
+      'bg-emerald-500', 'bg-sky-500', 'bg-blue-600', 'bg-cyan-600'
     ];
-    
+
     return Array.from(categoryMap.entries())
       .map(([name, amount], index) => ({
         name,
@@ -446,10 +445,10 @@ function Savings() {
 
   const savingsCategories = calculateCategoryBreakdown('savings');
   const investmentCategories = calculateCategoryBreakdown('investment');
-  
+
   // Apply type filter
-  const filteredByType = typeFilter === 'All' 
-    ? filteredByTime 
+  const filteredByType = typeFilter === 'All'
+    ? filteredByTime
     : filteredByTime.filter(item => item.type === typeFilter);
 
   // Apply category filter
@@ -465,204 +464,191 @@ function Savings() {
   const totalAmount = totalSavings + totalInvestments;
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
-      <Sidebar isOpen={sidebarOpen} />
+    <PageLayout
+      sidebarOpen={sidebarOpen}
+      setSidebarOpen={setSidebarOpen}
+      title="Savings"
+      underlineColor="bg-gradient-to-r from-cyan-500 to-blue-600"
+      hideContentTitle={true}
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="flex justify-between items-center mb-6">
+          <p className="text-gray-600 text-sm">Manage your savings goals and investment portfolio</p>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="px-8 py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-xl font-bold shadow-xl shadow-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/40 transition-all hover:scale-105 flex items-center gap-3 border-2 border-cyan-400"
+          >
+            <FaPlus className="text-lg" />
+            Add Entry
+          </button>
+        </div>
 
-      <div className="flex-1">
-        <Navbar 
-          onToggleSidebar={() => setSidebarOpen((s) => !s)} 
-          pageTitle="Savings"
-          underlineColor="bg-gradient-to-r from-purple-500 to-indigo-600"
-        />
+        {/* Time Period Filter */}
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <h3 className="font-semibold text-lg">Filter By</h3>
 
-        <main className="p-8 max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600 text-sm">Manage your savings goals and investment portfolio</p>
-            <button 
-              onClick={() => setModalOpen(true)}
-              className="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all hover:scale-105 flex items-center gap-3 border-2 border-purple-400"
-            >
-              <FaPlus className="text-lg" />
-              Add Entry
-            </button>
-          </div>
-
-          {/* Time Period Filter */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <h3 className="font-semibold text-lg">Filter By</h3>
-              
-              <div className="flex items-center gap-4">
-                {/* Filter Mode Toggle */}
-                <div className="flex items-center gap-2 bg-gray-200 rounded-xl p-1.5 shadow-inner">
-                  <button
-                    onClick={() => setFilterMode('period')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                      filterMode === 'period' 
-                        ? 'bg-white text-purple-700 shadow-md scale-105'
-                        : 'text-gray-600 hover:text-gray-900'
+            <div className="flex items-center gap-4">
+              {/* Filter Mode Toggle */}
+              <div className="flex items-center gap-2 bg-gray-200 rounded-xl p-1.5 shadow-inner">
+                <button
+                  onClick={() => setFilterMode('period')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${filterMode === 'period'
+                    ? 'bg-white text-cyan-700 shadow-md scale-105'
+                    : 'text-gray-600 hover:text-gray-900'
                     }`}
-                  >
-                    Time Period
-                  </button>
-                  <button
-                    onClick={() => setFilterMode('month')}
-                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                      filterMode === 'month' 
-                        ? 'bg-white text-purple-700 shadow-md scale-105'
-                        : 'text-gray-600 hover:text-gray-900'
+                >
+                  Time Period
+                </button>
+                <button
+                  onClick={() => setFilterMode('month')}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${filterMode === 'month'
+                    ? 'bg-white text-cyan-700 shadow-md scale-105'
+                    : 'text-gray-600 hover:text-gray-900'
                     }`}
+                >
+                  Calendar Month
+                </button>
+              </div>
+
+              {/* Selectors */}
+              {filterMode === 'period' ? (
+                <div className="relative inline-block">
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value)}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 cursor-pointer shadow-sm ml-2"
                   >
-                    Calendar Month
-                  </button>
+                    <optgroup label="Months">
+                      <option value="1 month">Last 1 Month</option>
+                      <option value="2 months">Last 2 Months</option>
+                      <option value="3 months">Last 3 Months</option>
+                      <option value="6 months">Last 6 Months</option>
+                    </optgroup>
+                    <optgroup label="Years">
+                      <option value="1 year">Last 1 Year</option>
+                      <option value="2 years">Last 2 Years</option>
+                      <option value="3 years">Last 3 Years</option>
+                    </optgroup>
+                    <option value="All time">All Time</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <FaChevronDown size={12} />
+                  </div>
                 </div>
+              ) : (
+                <div className="relative inline-block">
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    max={new Date().toISOString().slice(0, 7)}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 cursor-pointer shadow-sm ml-2"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                {/* Period Selector */}
-                {filterMode === 'period' ? (
-                  <div className="relative inline-block">
-                    <select
-                      value={timePeriod}
-                      onChange={(e) => setTimePeriod(e.target.value)}
-                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-sm"
-                    >
-                      <optgroup label="Months">
-                        <option value="1 month">Last 1 Month</option>
-                        <option value="2 months">Last 2 Months</option>
-                        <option value="3 months">Last 3 Months</option>
-                        <option value="6 months">Last 6 Months</option>
-                      </optgroup>
-                      <optgroup label="Years">
-                        <option value="1 year">Last 1 Year</option>
-                        <option value="2 years">Last 2 Years</option>
-                        <option value="3 years">Last 3 Years</option>
-                        <option value="4 years">Last 4 Years</option>
-                        <option value="5 years">Last 5 Years</option>
-                      </optgroup>
-                      <optgroup label="Other">
-                        <option value="All time">All Time</option>
-                      </optgroup>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                      <FaChevronDown size={12} />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative inline-block">
-                    <input
-                      type="month"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                      max={new Date().toISOString().slice(0, 7)}
-                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-sm"
-                    />
-                  </div>
-                )}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {[
+            { label: `Total Portfolio (${filterMode === 'month' ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : timePeriod})`, amount: totalAmount },
+            { label: 'Total Savings', amount: totalSavings },
+            { label: 'Total Investments', amount: totalInvestments }
+          ].map((stat, i) => (
+            <div key={i} className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
+              <h3 className="text-sm text-white/90 mb-2">{stat.label}</h3>
+              <div className="text-3xl font-bold">Rs. {stat.amount.toLocaleString()}</div>
+              <div className="text-xs text-white/80 mt-1">
+                {i === 0 ? "Combined savings & investments" : (i === 1 ? "↑ 12% from last period" : "↑ 18% from last period")}
               </div>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
-              <h3 className="text-sm text-white/90 mb-2">
-                Total Amount ({filterMode === 'month' 
-                  ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                  : timePeriod})
-              </h3>
-              <div className="text-3xl font-bold">Rs. {totalAmount.toLocaleString()}</div>
-              <div className="text-xs text-white/80 mt-1">Combined savings & investments</div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Entries */}
+          <div className="lg:col-span-2 bg-gradient-to-br from-white/90 via-cyan-50/40 to-blue-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
+            {/* Decorative gradient overlay */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl -z-10"></div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
-              <h3 className="text-sm text-white/90 mb-2">Total Savings</h3>
-              <div className="text-3xl font-bold">Rs. {totalSavings.toLocaleString()}</div>
-              <div className="text-xs text-white/80 mt-1">↑ 12% from last period</div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
-              <h3 className="text-sm text-white/90 mb-2">Total Investments</h3>
-              <div className="text-3xl font-bold">Rs. {totalInvestments.toLocaleString()}</div>
-              <div className="text-xs text-white/80 mt-1">↑ 18% from last period</div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-gradient-to-br from-white/90 via-purple-50/40 to-indigo-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 overflow-hidden relative">
-              {/* Decorative gradient overlay */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-3xl -z-10"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl -z-10"></div>
-              
-              <div className="p-8 border-b border-white/50 backdrop-blur-xl relative z-10">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Recent Entries</h2>
-                    <p className="text-sm text-gray-600 mt-1 font-medium">Your savings & investment activities</p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Type:</label>
-                      <div className="relative inline-block">
-                        <select
-                          value={typeFilter}
-                          onChange={(e) => setTypeFilter(e.target.value)}
-                          className="appearance-none bg-white border-2 border-purple-200 rounded-xl px-6 py-3 pr-12 text-sm font-bold text-gray-800 hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-lg hover:shadow-xl transition-all"
-                        >
-                          <option value="All">All</option>
-                          <option value="savings">Savings</option>
-                          <option value="investment">Investments</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                          <FaChevronDown size={12} />
-                        </div>
+            <div className="p-8 border-b border-white/50 backdrop-blur-xl relative z-10">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">Recent Entries</h2>
+                  <p className="text-sm text-gray-600 mt-1 font-medium">Your savings & investment activities</p>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-700">Filter:</label>
+                    <div className="relative inline-block">
+                      <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="appearance-none bg-white border-2 border-cyan-200 rounded-xl px-4 py-2 pr-10 text-sm font-bold text-gray-800 hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 cursor-pointer shadow-lg hover:shadow-xl transition-all"
+                      >
+                        <option value="All">All Types</option>
+                        <option value="savings">Savings</option>
+                        <option value="investment">Investments</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <FaChevronDown size={12} />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Category:</label>
-                      <div className="relative inline-block">
-                        <select
-                          value={categoryFilter}
-                          onChange={(e) => setCategoryFilter(e.target.value)}
-                          className="appearance-none bg-white border-2 border-purple-200 rounded-xl px-6 py-3 pr-12 text-sm font-bold text-gray-800 hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 cursor-pointer shadow-lg hover:shadow-xl transition-all"
-                        >
-                          <option value="All">All Categories</option>
-                          <optgroup label="Savings">
-                            <option value="Emergency Fund">Emergency Fund</option>
-                            <option value="Vacation">Vacation</option>
-                            <option value="Home Down Payment">Home Down Payment</option>
-                            <option value="Car Purchase">Car Purchase</option>
-                            <option value="Education">Education</option>
-                            <option value="Retirement">Retirement</option>
-                            <option value="General Savings">General Savings</option>
-                          </optgroup>
-                          <optgroup label="Investments">
-                            <option value="Stocks">Stocks</option>
-                            <option value="Mutual Funds">Mutual Funds</option>
-                            <option value="Bonds">Bonds</option>
-                            <option value="Real Estate">Real Estate</option>
-                            <option value="Cryptocurrency">Cryptocurrency</option>
-                            <option value="Gold">Gold</option>
-                            <option value="Fixed Deposit">Fixed Deposit</option>
-                          </optgroup>
-                          <option value="Other">Other</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                          <FaChevronDown size={12} />
-                        </div>
+                    <div className="relative inline-block">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="appearance-none bg-white border-2 border-cyan-200 rounded-xl px-4 py-2 pr-10 text-sm font-bold text-gray-800 hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 cursor-pointer shadow-lg hover:shadow-xl transition-all ml-2"
+                      >
+                        <option value="All">All Categories</option>
+                        <optgroup label="Savings">
+                          <option value="Emergency Fund">Emergency Fund</option>
+                          <option value="Vacation">Vacation</option>
+                          <option value="Home Down Payment">Home Down Payment</option>
+                          <option value="Car Purchase">Car Purchase</option>
+                          <option value="Education">Education</option>
+                          <option value="Retirement">Retirement</option>
+                          <option value="General Savings">General Savings</option>
+                        </optgroup>
+                        <optgroup label="Investments">
+                          <option value="Stocks">Stocks</option>
+                          <option value="Mutual Funds">Mutual Funds</option>
+                          <option value="Bonds">Bonds</option>
+                          <option value="Real Estate">Real Estate</option>
+                          <option value="Cryptocurrency">Cryptocurrency</option>
+                          <option value="Gold">Gold</option>
+                          <option value="Fixed Deposit">Fixed Deposit</option>
+                        </optgroup>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <FaChevronDown size={12} />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="p-8 relative z-10">
+            </div>
+
+            <div className="p-8 relative z-10">
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Loading data...</div>
+              ) : filteredData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No records found for this period</div>
+              ) : (
                 <div className="space-y-4">
                   {filteredData.map((item) => (
                     <div key={item.id} className="flex items-center justify-between p-5 bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl hover:bg-white/90 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <div className={`${item.type === 'savings' ? 'text-blue-600' : 'text-purple-600'}`}>
+                          <div className={`text-2xl ${item.type === 'savings' ? 'text-cyan-600' : 'text-blue-600'}`}>
                             {getCategoryIcon(item.category, item.type)}
                           </div>
                           <div>
-                            <div className="font-bold text-gray-800 text-lg">{item.description}</div>
+                            <div className="font-bold text-gray-800 text-lg">{item.description || item.category}</div>
                             <div className="text-sm text-gray-600 mt-0.5 font-medium">
                               {item.category} • {new Date(item.date).toLocaleDateString()}
                             </div>
@@ -670,19 +656,10 @@ function Savings() {
                           {item.recurring && (
                             <span className="px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-600 text-white text-xs rounded-full font-semibold shadow-md">Recurring</span>
                           )}
-                          <span className={`px-3 py-1 text-xs rounded-full font-semibold shadow-md ${
-                            item.type === 'savings' 
-                              ? 'bg-gradient-to-r from-blue-400 to-indigo-500 text-white' 
-                              : 'bg-gradient-to-r from-purple-400 to-pink-500 text-white'
-                          }`}>
-                            {item.type === 'savings' ? 'Savings' : 'Investment'}
-                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className={`text-xl font-bold ${
-                          item.type === 'savings' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent' : 'bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'
-                        }`}>
+                        <div className={`text-xl font-bold ${item.type === 'savings' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent' : 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent'}`}>
                           +Rs. {Number(item.amount).toLocaleString()}
                         </div>
                         <div className="flex gap-2">
@@ -697,88 +674,87 @@ function Savings() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-white/90 via-purple-50/40 to-indigo-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 p-8 relative overflow-hidden">
-              {/* Decorative gradient overlay */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 rounded-full blur-3xl -z-10"></div>
-              
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6">Breakdown</h2>
-              
-              <div className="mb-8">
-                <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
-                  Savings Categories
-                </h3>
-                <div className="space-y-4">
-                  {savingsCategories.map((cat) => {
-                    const percentage = totalSavings > 0 ? (cat.amount / totalSavings) * 100 : 0;
-                    return (
-                      <div key={cat.name}>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-bold text-gray-800">{cat.name}</span>
-                          <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{percentage.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200/50 rounded-full h-3 shadow-inner backdrop-blur-sm overflow-hidden">
-                          <div 
-                            className={`${cat.color} h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden`} 
-                            style={{ width: `${percentage}%` }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
-                          </div>
-                        </div>
-                        <div className="text-right mt-2">
-                          <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-8 border-t border-white/50">
-                <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <div className="w-1 h-4 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full"></div>
-                  Investment Categories
-                </h3>
-                <div className="space-y-4">
-                  {investmentCategories.map((cat) => {
-                    const percentage = totalInvestments > 0 ? (cat.amount / totalInvestments) * 100 : 0;
-                    return (
-                      <div key={cat.name}>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-bold text-gray-800">{cat.name}</span>
-                          <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{percentage.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200/50 rounded-full h-3 shadow-inner backdrop-blur-sm overflow-hidden">
-                          <div 
-                            className={`${cat.color} h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden`} 
-                            style={{ width: `${percentage}%` }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
-                          </div>
-                        </div>
-                        <div className="text-right mt-2">
-                          <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        </main>
+
+          {/* Breakdown Section */}
+          <div className="bg-gradient-to-br from-white/90 via-cyan-50/40 to-blue-50/40 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/60 p-8 relative overflow-hidden">
+            {/* Decorative gradient overlay */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl -z-10"></div>
+
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-6">Portfolio Analysis</h2>
+
+            {/* Savings Breakdown */}
+            <div className="space-y-5 mb-8">
+              <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
+                Savings Categories
+              </h3>
+              {savingsCategories.map((cat) => {
+                const percentage = totalSavings > 0 ? (cat.amount / totalSavings) * 100 : 0;
+                return (
+                  <div key={cat.name}>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-bold text-gray-800">{cat.name}</span>
+                      <span className="text-sm font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">{percentage.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200/50 rounded-full h-3 shadow-inner backdrop-blur-sm overflow-hidden">
+                      <div
+                        className={`${cat.color} h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden`}
+                        style={{ width: `${percentage}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
+                      </div>
+                    </div>
+                    <div className="text-right mt-2">
+                      <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Investment Breakdown */}
+            <div className="space-y-5 pt-8 border-t border-white/50">
+              <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                Investment Categories
+              </h3>
+              {investmentCategories.map((cat) => {
+                const percentage = totalInvestments > 0 ? (cat.amount / totalInvestments) * 100 : 0;
+                return (
+                  <div key={cat.name}>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-bold text-gray-800">{cat.name}</span>
+                      <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{percentage.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200/50 rounded-full h-3 shadow-inner backdrop-blur-sm overflow-hidden">
+                      <div
+                        className={`${cat.color} h-3 rounded-full transition-all duration-500 ease-out shadow-lg relative overflow-hidden`}
+                        style={{ width: `${percentage}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent"></div>
+                      </div>
+                    </div>
+                    <div className="text-right mt-2">
+                      <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <SavingsModal 
-        isOpen={modalOpen} 
+      <SavingsModal
+        isOpen={modalOpen}
         onClose={handleModalClose}
         onSuccess={fetchData}
         editingEntry={editingEntry}
       />
-    </div>
+    </PageLayout>
   );
 }
 
