@@ -1,6 +1,6 @@
 // pages/Signup.tsx
 import { useState } from "react";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaMapMarkerAlt, FaCalendar, FaBriefcase } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaMapMarkerAlt, FaCalendar, FaBriefcase, FaCamera, FaArrowRight } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
@@ -8,6 +8,8 @@ function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [wantsProfilePic, setWantsProfilePic] = useState<boolean | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -28,31 +30,58 @@ function Signup() {
     setError("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      // Validate passwords match
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        setLoading(false);
+  const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size should be less than 5MB");
         return;
       }
 
-      console.log("Sending signup request with data:", formData);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicture(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-      // Signup
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    // Check if user wants profile pic but hasn't uploaded one
+    if (wantsProfilePic && !profilePicture) {
+      setError("Please upload a profile picture or select 'No'");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const dataToSend = {
+        ...formData,
+        ...(profilePicture ? { profile_picture: profilePicture } : {})
+      };
+
       const response = await fetch("http://localhost:3001/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       });
 
-      console.log("Response status:", response.status);
       const data = await response.json();
-      console.log("Response data:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to sign up");
@@ -69,43 +98,46 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      {/* Background decorative elements */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute top-10 left-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-10 right-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl animate-float" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
-      <div className="max-w-2xl w-full relative z-10">
+      <div className="max-w-3xl w-full relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-full mb-4 backdrop-blur-sm">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-                FT
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-2xl mb-4 backdrop-blur-lg shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-500 animate-glow">
+            <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-4xl font-black animate-bounce" style={{ animationDuration: '2s' }}>
+                💰
               </span>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Create Your Account</h1>
-          <p className="text-white text-opacity-90">
-            Join Finance Tracker and start managing your finances
+          <h1 className="text-5xl font-black text-white mb-3 tracking-tight drop-shadow-lg animate-slide-in-left">Create Your Account</h1>
+          <p className="text-white text-opacity-95 text-lg font-medium animate-slide-in-right">
+            Join Finance Tracker and start managing your finances smartly
           </p>
         </div>
 
         {/* Signup Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-scale-in hover:shadow-purple-500/20 hover:shadow-3xl transition-all duration-500">
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
-                <div className="relative">
-                  <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <div className="animate-slide-in-left" style={{ animationDelay: '0.1s' }}>
+                <label className="block text-sm font-bold text-gray-800 mb-2">First Name *</label>
+                <div className="relative group">
+                  <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-purple-500 transition-all duration-300 group-hover:scale-110" />
                   <input
                     type="text"
                     name="firstName"
@@ -113,12 +145,12 @@ function Signup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 bg-gray-50 hover:bg-white hover:border-purple-300 hover:shadow-lg"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
+              <div className="animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
+                <label className="block text-sm font-bold text-gray-800 mb-2">Last Name *</label>
                 <input
                   type="text"
                   name="lastName"
@@ -126,15 +158,15 @@ function Signup() {
                   value={formData.lastName}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 bg-gray-50 hover:bg-white hover:border-purple-300 hover:shadow-lg"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-              <div className="relative">
-                <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="animate-slide-in-left" style={{ animationDelay: '0.2s' }}>
+              <label className="block text-sm font-bold text-gray-800 mb-2">Email Address *</label>
+              <div className="relative group">
+                <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-purple-500 transition-all duration-300 group-hover:scale-110" />
                 <input
                   type="email"
                   name="email"
@@ -142,7 +174,7 @@ function Signup() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 bg-gray-50 hover:bg-white hover:border-purple-300 hover:shadow-lg"
                 />
               </div>
             </div>
@@ -267,6 +299,81 @@ function Signup() {
               </div>
             </div>
 
+            {/* Profile Picture Section */}
+            <div className="border-t-2 border-gray-200 pt-5 mt-5 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <label className="block text-sm font-bold text-gray-800 mb-3">
+                📸 Do you want to add a profile picture?
+              </label>
+              <div className="flex gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWantsProfilePic(true);
+                    setError("");
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 shadow-sm ${
+                    wantsProfilePic === true
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105 animate-glow"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-200 hover:scale-105"
+                  }`}
+                >
+                  Yes, Add Photo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWantsProfilePic(false);
+                    setProfilePicture(null);
+                    setError("");
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all duration-300 shadow-sm ${
+                    wantsProfilePic === false
+                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg scale-105 animate-glow"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-gray-200 hover:scale-105"
+                  }`}
+                >
+                  No, Skip
+                </button>
+              </div>
+
+              {wantsProfilePic === true && (
+                <div className="flex flex-col items-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200 animate-scale-in">
+                  <div className="relative mb-3">
+                    {profilePicture ? (
+                      <img
+                        src={profilePicture}
+                        alt="Profile"
+                        className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-xl animate-fade-in"
+                      />
+                    ) : (
+                      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-3xl font-bold shadow-xl animate-pulse">
+                        {formData.firstName.charAt(0) || "?"}{formData.lastName.charAt(0) || "?"}
+                      </div>
+                    )}
+                    <label
+                      htmlFor="profile-pic-input"
+                      className="absolute bottom-0 right-0 bg-white rounded-full p-3 shadow-xl cursor-pointer hover:bg-purple-50 transition-all duration-300 border-4 border-white transform hover:scale-125 hover:rotate-12 animate-bounce"
+                      style={{ animationDuration: '2s' }}
+                    >
+                      <FaCamera className="text-purple-600 text-lg" />
+                      <input
+                        id="profile-pic-input"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePicChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-sm text-purple-700 font-semibold text-center animate-fade-in">
+                    Click the camera icon to upload
+                    <br />
+                    <span className="text-xs text-purple-600">(Max size: 5MB)</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-start">
               <input
                 type="checkbox"
@@ -288,27 +395,28 @@ function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:from-indigo-700 hover:to-purple-700 transform hover:scale-[1.02] transition-all duration-300 shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed mt-6 relative overflow-hidden group"
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              <span className="relative z-10">{loading ? "Creating Account..." : "Create Account →"}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-7 text-center">
+            <p className="text-sm text-gray-700 font-medium">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-purple-500 font-semibold hover:text-purple-600"
+                className="text-purple-600 font-bold hover:text-purple-700 hover:underline transition-all"
               >
-                Sign in
+                Sign in here →
               </Link>
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-white text-opacity-90 text-sm mt-8">
+        <p className="text-center text-white text-opacity-95 text-sm mt-8 font-medium">
           © 2026 Finance Tracker. All rights reserved.
         </p>
       </div>

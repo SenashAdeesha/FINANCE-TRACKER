@@ -1,12 +1,23 @@
+import { useState } from "react";
+import PageLayout from "../components/PageLayout";
 import Transactions from '../components/Transactions';
 
-// Note: Navbar with "Transactions" title should be added in parent layout
 function TransactionsPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
-    <div className="p-6">
-      <Transactions />
-    </div>
+    <PageLayout
+      sidebarOpen={sidebarOpen}
+      setSidebarOpen={setSidebarOpen}
+      title="Transactions"
+      hideContentTitle={true}
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <Transactions />
+      </div>
+    </PageLayout>
   );
 }
 
 export default TransactionsPage;
+
