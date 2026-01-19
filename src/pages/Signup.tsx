@@ -1,5 +1,5 @@
 // pages/Signup.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaMapMarkerAlt, FaCalendar, FaBriefcase, FaCamera, FaArrowRight } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -10,6 +10,8 @@ function Signup() {
   const [loading, setLoading] = useState(false);
   const [wantsProfilePic, setWantsProfilePic] = useState<boolean | null>(null);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [coins, setCoins] = useState<Array<{ id: number; x: number; y: number; delay: number; symbol: string }>>([]);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -24,6 +26,31 @@ function Signup() {
     city: "",
     country: ""
   });
+
+  // Mouse tracking for parallax effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Generate falling coins
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const symbols = ['💰', '💵', '💳', '💎', '🪙', '💸', '📈', '📊', '💹'];
+      const newCoin = {
+        id: Date.now(),
+        x: Math.random() * 100,
+        y: -10,
+        delay: Math.random() * 2,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)]
+      };
+      setCoins(prev => [...prev.slice(-25), newCoin]);
+    }, 700);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -75,20 +102,26 @@ function Signup() {
         ...(profilePicture ? { profile_picture: profilePicture } : {})
       };
 
-      const response = await fetch("http://localhost:3001/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend)
+      const response = await fetch('http://localhost:3001/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to sign up");
+        throw new Error(data.error || 'Signup failed');
       }
 
-      alert("Account created successfully! Please login.");
-      navigate("/login");
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (err) {
       console.error("Signup error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -99,26 +132,58 @@ function Signup() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background decorative elements */}
+      {/* Animated Financial Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl"></div>
-        <div className="absolute top-10 left-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-10 right-10 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl animate-float" style={{ animationDelay: '1.5s' }}></div>
+        {/* Gradient Orbs */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s', animationDuration: '9s' }}></div>
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s', animationDuration: '11s' }}></div>
+        
+        {/* Floating Financial Icons */}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-float opacity-20"
+            style={{
+              left: `${(i * 8) + (i % 2) * 5}%`,
+              top: `${(i % 5) * 20}%`,
+              animationDelay: `${i * 0.4}s`,
+              animationDuration: `${4 + (i % 3)}s`,
+              fontSize: `${25 + (i % 4) * 10}px`
+            }}
+          >
+            <div className="transform hover:scale-150 hover:rotate-12 transition-all duration-500 cursor-pointer">
+              {i % 7 === 0 ? '💰' : i % 7 === 1 ? '💵' : i % 7 === 2 ? '💳' : i % 7 === 3 ? '📊' : i % 7 === 4 ? '💎' : i % 7 === 5 ? '🪙' : '💸'}
+            </div>
+          </div>
+        ))}
+        
+        {/* Animated Coins and Financial Symbols */}
+        <div className="absolute top-20 right-20 text-6xl animate-bounce opacity-30" style={{ animationDuration: '3s' }}>💰</div>
+        <div className="absolute bottom-32 left-16 text-5xl animate-float opacity-25" style={{ animationDelay: '1s' }}>💵</div>
+        <div className="absolute top-1/3 left-1/4 text-4xl animate-wiggle opacity-20" style={{ animationDelay: '2s' }}>💳</div>
+        <div className="absolute bottom-1/4 right-1/4 text-5xl animate-float opacity-25" style={{ animationDelay: '1.5s' }}>📈</div>
+        <div className="absolute top-2/3 left-1/3 text-4xl animate-bounce opacity-20" style={{ animationDelay: '2.5s', animationDuration: '4s' }}>🪙</div>
+        <div className="absolute top-1/2 right-1/3 text-5xl animate-wiggle opacity-25" style={{ animationDelay: '3s' }}>💎</div>
       </div>
 
       <div className="max-w-3xl w-full relative z-10">
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-2xl mb-4 backdrop-blur-lg shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-500 animate-glow">
-            <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-4xl font-black animate-bounce" style={{ animationDuration: '2s' }}>
+          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-2xl mb-4 backdrop-blur-lg shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-500 animate-pulse-glow relative group">
+            <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden">
+              <span className="text-4xl font-black animate-bounce relative z-10" style={{ animationDuration: '2s' }}>
                 💰
               </span>
+              {/* Sparkle effects */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute top-1/2 -left-2 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '1s' }}></div>
             </div>
+            {/* Glow ring */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-50 blur-lg transition-all duration-500"></div>
           </div>
-          <h1 className="text-5xl font-black text-white mb-3 tracking-tight drop-shadow-lg animate-slide-in-left">Create Your Account</h1>
+          <h1 className="text-5xl font-black text-white mb-3 tracking-tight drop-shadow-lg animate-slide-in-left neon-glow">Create Your Account</h1>
           <p className="text-white text-opacity-95 text-lg font-medium animate-slide-in-right">
             Join Finance Tracker and start managing your finances smartly
           </p>

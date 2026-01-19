@@ -1,6 +1,7 @@
 import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import PageLayout from "../components/PageLayout";
-import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaUtensils, FaCar, FaShoppingBag, FaHome, FaBolt, FaHeartbeat, FaGraduationCap, FaFilm, FaPlane, FaWifi, FaShoppingCart } from "react-icons/fa";
+import { useCurrency } from "../context/CurrencyContext";
+import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaUtensils, FaCar, FaShoppingBag, FaHome, FaBolt, FaHeartbeat, FaGraduationCap, FaFilm, FaPlane, FaWifi, FaShoppingCart, FaChartLine } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -159,7 +160,7 @@ function ExpenseModal({
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                   <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-pink-600 rounded-full"></div>
-                  Amount (Rs.)
+                Amount
                 </label>
                 <input
                   type="number"
@@ -253,6 +254,7 @@ function Expense() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const { formatCurrency } = useCurrency();
 
   // Fetch categories
   useEffect(() => {
@@ -565,19 +567,19 @@ function Expense() {
               ? new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
               : timePeriod})
           </h3>
-          <div className="text-3xl font-bold">Rs. {totalExpense.toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(totalExpense)}</div>
           <div className="text-xs text-white/80 mt-1">{filteredByTime.length} transactions</div>
         </div>
 
         <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
           <h3 className="text-sm text-white/90 mb-2">Recurring Expense</h3>
-          <div className="text-3xl font-bold">Rs. {recurringExpense.toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(recurringExpense)}</div>
           <div className="text-xs text-white/80 mt-1">From recurring sources</div>
         </div>
 
         <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
           <h3 className="text-sm text-white/90 mb-2">One-time Expense</h3>
-          <div className="text-3xl font-bold">Rs. {oneTimeExpense.toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(oneTimeExpense)}</div>
           <div className="text-xs text-white/80 mt-1">From one-time sources</div>
         </div>
       </div>
@@ -650,7 +652,7 @@ function Expense() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">-Rs. {Number(expense.amount).toLocaleString()}</div>
+                      <div className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">-{formatCurrency(Number(expense.amount))}</div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEdit(expense)}
@@ -705,13 +707,154 @@ function Expense() {
                       </div>
                     </div>
                     <div className="text-right mt-2">
-                      <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-gray-700">{formatCurrency(cat.amount)}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
+
+          {/* Trend Chart */}
+          <div className="mt-8 pt-8 border-t border-white/50">
+            <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <FaChartLine className="text-red-600" />
+              Expense Trend
+            </h3>
+            {(() => {
+              // Group expenses by month with date sorting
+              const monthlyMap = new Map<string, { date: Date; amount: number; label: string }>();
+              
+              filteredByTime.forEach(item => {
+                const date = new Date(item.date);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const label = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                
+                if (monthlyMap.has(key)) {
+                  const existing = monthlyMap.get(key)!;
+                  existing.amount += Number(item.amount);
+                } else {
+                  monthlyMap.set(key, { date, amount: Number(item.amount), label });
+                }
+              });
+              
+              // Sort by date and take last 6 months
+              const sortedEntries = Array.from(monthlyMap.entries())
+                .sort((a, b) => a[1].date.getTime() - b[1].date.getTime())
+                .slice(-6);
+              
+              const maxAmount = Math.max(...sortedEntries.map(([_, v]) => v.amount), 0);
+              
+              return sortedEntries.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    {/* Y-axis labels */}
+                    <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-gray-500 font-medium">
+                      <span className="text-right pr-2">{formatCurrency(maxAmount)}</span>
+                      <span className="text-right pr-2">{formatCurrency(maxAmount * 0.75)}</span>
+                      <span className="text-right pr-2">{formatCurrency(maxAmount * 0.5)}</span>
+                      <span className="text-right pr-2">{formatCurrency(maxAmount * 0.25)}</span>
+                      <span className="text-right pr-2">0</span>
+                    </div>
+                    
+                    {/* Chart area with grid */}
+                    <div className="ml-16 relative">
+                      {/* Horizontal grid lines */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        {[0, 25, 50, 75, 100].map((percent) => (
+                          <div key={percent} className="w-full border-t border-gray-200 border-dashed"></div>
+                        ))}
+                      </div>
+                      
+                      {/* Line graph */}
+                      <div className="h-48 relative px-2">
+                        <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
+                          {/* Draw line connecting points */}
+                          <polyline
+                            points={sortedEntries.map(([key, data], idx) => {
+                              const x = (idx / (sortedEntries.length - 1)) * 100;
+                              const y = 100 - (maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0);
+                              return `${x}%,${y}%`;
+                            }).join(' ')}
+                            fill="none"
+                            stroke="url(#redGradient)"
+                            strokeWidth="3"
+                            className="drop-shadow-lg"
+                          />
+                          {/* Gradient definition */}
+                          <defs>
+                            <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" style={{ stopColor: '#ef4444', stopOpacity: 1 }} />
+                              <stop offset="100%" style={{ stopColor: '#dc2626', stopOpacity: 1 }} />
+                            </linearGradient>
+                          </defs>
+                          {/* Draw area under line */}
+                          <defs>
+                            <linearGradient id="areaRedGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" style={{ stopColor: '#ef4444', stopOpacity: 0.3 }} />
+                              <stop offset="100%" style={{ stopColor: '#ef4444', stopOpacity: 0.05 }} />
+                            </linearGradient>
+                          </defs>
+                          <polygon
+                            points={`
+                              0%,100% 
+                              ${sortedEntries.map(([key, data], idx) => {
+                                const x = (idx / (sortedEntries.length - 1)) * 100;
+                                const y = 100 - (maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0);
+                                return `${x}%,${y}%`;
+                              }).join(' ')} 
+                              100%,100%
+                            `}
+                            fill="url(#areaRedGradient)"
+                          />
+                        </svg>
+                        
+                        {/* Data points with tooltips */}
+                        <div className="absolute inset-0 flex justify-between items-end px-2">
+                          {sortedEntries.map(([key, data], idx) => {
+                            const yPosition = maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0;
+                            return (
+                              <div key={key} className="flex-1 flex justify-center relative group" style={{ height: '100%' }}>
+                                <div className="absolute" style={{ bottom: `${yPosition}%`, transform: 'translateY(50%)' }}>
+                                  {/* Tooltip */}
+                                  <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-gray-800 text-white px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap shadow-xl">
+                                    <div className="font-semibold">{data.label}</div>
+                                    <div className="text-red-300">{formatCurrency(data.amount)}</div>
+                                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+                                  </div>
+                                  {/* Point */}
+                                  <div className="relative">
+                                    <div className="w-3 h-3 bg-red-500 border-2 border-white rounded-full shadow-lg cursor-pointer transform transition-all duration-200 group-hover:scale-150 group-hover:bg-red-600"></div>
+                                    <div className="absolute inset-0 w-3 h-3 bg-red-400 rounded-full animate-ping opacity-75"></div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* X-axis labels */}
+                  <div className="ml-16 flex justify-between px-2">
+                    {sortedEntries.map(([key, data]) => (
+                      <div key={key} className="flex-1 text-center">
+                        <span className="text-xs font-semibold text-gray-600">{data.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="text-center text-xs text-gray-500 mt-3 italic">Showing last {sortedEntries.length} months • Hover for details</div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  <div className="mb-2">📊 No data to display</div>
+                  <div className="text-xs">Add expense entries to see the trend chart</div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
 

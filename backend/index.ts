@@ -3,27 +3,56 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
 import bcrypt from "bcrypt";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 dotenv.config();
 
 const { Pool } = pg;
 
 // Create database pool
-const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT || "5432"),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-});
+const pool = new Pool(
+    process.env.DATABASE_URL
+        ? { connectionString: process.env.DATABASE_URL }
+        : {
+            host: process.env.DB_HOST,
+            port: parseInt(process.env.DB_PORT || "5432"),
+            database: process.env.DB_NAME,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+        }
+);
 
 // Test pool connection
 pool.on("connect", () => {
-    console.log("✅ Connected to PostgreSQL database");
+    console.log("✅ New client connected to the pool");
 });
 
+// Pool level error handling
 pool.on("error", (err) => {
-    console.error("❌ Database error:", err);
+    console.error("❌ Unexpected database error:", err);
+});
+
+// Check initial connection
+(async () => {
+    try {
+        const client = await pool.connect();
+        console.log("✅ Successfully connected to the database pool");
+        const res = await client.query('SELECT NOW()');
+        console.log("🕒 Database Time:", res.rows[0].now);
+        client.release();
+    } catch (err) {
+        console.error("❌ Failed to connect to the database on startup:", err);
+    }
+})();
+
+// Email transporter setup
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password'
+    }
 });
 
 const app = express();
@@ -31,7 +60,8 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Parses JSON body
+app.use(express.json({ limit: '10mb' })); // Increased limit for profile pictures
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Test route
 app.get("/", (req, res) => {
@@ -70,7 +100,8 @@ app.post("/api/auth/signup", async (req, res) => {
             dateOfBirth,
             occupation,
             city,
-            country
+            country,
+            profile_picture
         } = req.body;
 
         // Validate required fields
@@ -99,12 +130,12 @@ app.post("/api/auth/signup", async (req, res) => {
         const result = await pool.query(
             `INSERT INTO users (
                 username, email, password_hash, first_name, last_name, 
-                phone, date_of_birth, occupation, city, country
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                phone, date_of_birth, occupation, city, country, profile_picture
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING id, username, email, first_name, last_name, phone, 
-                      date_of_birth, occupation, city, country, created_at`,
-            [username, email, passwordHash, firstName, lastName, phone || null, 
-             dateOfBirth || null, occupation || null, city || null, country || null]
+                      date_of_birth, occupation, city, country, profile_picture, created_at`,
+            [username, email, passwordHash, firstName, lastName, phone || null,
+                dateOfBirth || null, occupation || null, city || null, country || null, profile_picture || null]
         );
 
         res.status(201).json({
@@ -158,6 +189,268 @@ app.post("/api/auth/login", async (req, res) => {
     } catch (error) {
         console.error("Error logging in:", error);
         res.status(500).json({ error: "Failed to login" });
+    }
+});
+
+// ============= USER PROFILE API =============
+// Get user profile
+app.get("/api/users/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "SELECT id, username, email, first_name, last_name, phone, address, city, country, postal_code, date_of_birth, occupation, bio, profile_picture, created_at FROM users WHERE id = $1",
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ error: "Failed to fetch user profile" });
+    }
+});
+
+// Update user profile
+app.put("/api/users/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            first_name,
+            last_name,
+            phone,
+            address,
+            city,
+            country,
+            postal_code,
+            date_of_birth,
+            occupation,
+            bio,
+            profile_picture
+        } = req.body;
+
+        const result = await pool.query(
+            `UPDATE users 
+             SET first_name = $1, last_name = $2, phone = $3, address = $4, 
+                 city = $5, country = $6, postal_code = $7, date_of_birth = $8, 
+                 occupation = $9, bio = $10, profile_picture = $11, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $12
+             RETURNING id, username, email, first_name, last_name, phone, address, 
+                       city, country, postal_code, date_of_birth, occupation, bio, profile_picture, updated_at`,
+            [first_name, last_name, phone, address, city, country, postal_code,
+                date_of_birth, occupation, bio, profile_picture, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            user: result.rows[0]
+        });
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        res.status(500).json({ error: "Failed to update user profile" });
+    }
+});
+
+// Update user password
+app.put("/api/users/:id/password", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate required fields
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: "Current password and new password are required" });
+        }
+
+        // Validate new password length
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: "New password must be at least 6 characters long" });
+        }
+
+        // Get user with current password hash
+        const userResult = await pool.query(
+            "SELECT password_hash FROM users WHERE id = $1",
+            [id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const user = userResult.rows[0];
+
+        // Verify current password
+        const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isValidPassword) {
+            return res.status(401).json({ error: "Current password is incorrect" });
+        }
+
+        // Hash new password
+        const saltRounds = 10;
+        const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password
+        await pool.query(
+            "UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+            [newPasswordHash, id]
+        );
+
+        res.json({
+            success: true,
+            message: "Password updated successfully"
+        });
+    } catch (error) {
+        console.error("Error updating password:", error);
+        res.status(500).json({ error: "Failed to update password" });
+    }
+});
+
+// Forgot password - Send reset token
+app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        // Find user by email
+        const result = await pool.query(
+            "SELECT id, email, first_name FROM users WHERE email = $1",
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            // Don't reveal if email exists or not for security
+            return res.json({
+                success: true,
+                message: "If an account exists with this email, you will receive a password reset link."
+            });
+        }
+
+        const user = result.rows[0];
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+        // Save reset token to database
+        await pool.query(
+            "UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3",
+            [resetToken, resetTokenExpires, user.id]
+        );
+
+        // Send email with reset link
+        const resetLink = `http://localhost:5177/reset-password?token=${resetToken}`;
+        const mailOptions = {
+            from: process.env.EMAIL_USER || 'noreply@financetracker.com',
+            to: user.email,
+            subject: 'Password Reset Request - Finance Tracker',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #6366f1;">Password Reset Request</h2>
+                    <p>Hi ${user.first_name || 'there'},</p>
+                    <p>You requested to reset your password for your Finance Tracker account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${resetLink}" 
+                           style="background: linear-gradient(to right, #3b82f6, #8b5cf6); 
+                                  color: white; 
+                                  padding: 12px 30px; 
+                                  text-decoration: none; 
+                                  border-radius: 8px;
+                                  display: inline-block;
+                                  font-weight: bold;">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="color: #6366f1; word-break: break-all;">${resetLink}</p>
+                    <p style="color: #666; font-size: 14px;">
+                        This link will expire in 1 hour for security reasons.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't request this password reset, please ignore this email.
+                    </p>
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="color: #999; font-size: 12px; text-align: center;">
+                        Finance Tracker &copy; 2026
+                    </p>
+                </div>
+            `
+        };
+
+        // Check if email is configured
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || 
+            process.env.EMAIL_USER === 'your-email@gmail.com' || 
+            process.env.EMAIL_PASS === 'your-app-specific-password') {
+            console.error("Email credentials not configured in .env file");
+            return res.status(500).json({ 
+                error: "Email service not configured. Please contact administrator." 
+            });
+        }
+
+        await transporter.sendMail(mailOptions);
+
+        res.json({
+            success: true,
+            message: "If an account exists with this email, you will receive a password reset link."
+        });
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
+        res.status(500).json({ error: "Failed to process password reset request" });
+    }
+});
+
+// Reset password with token
+app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ error: "Token and new password are required" });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: "Password must be at least 6 characters long" });
+        }
+
+        // Find user by reset token and check if token is still valid
+        const result = await pool.query(
+            "SELECT id FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()",
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: "Invalid or expired reset token" });
+        }
+
+        const user = result.rows[0];
+
+        // Hash new password
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password and clear reset token
+        await pool.query(
+            "UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+            [passwordHash, user.id]
+        );
+
+        res.json({
+            success: true,
+            message: "Password reset successfully"
+        });
+    } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({ error: "Failed to reset password" });
     }
 });
 
@@ -298,6 +591,7 @@ app.get("/api/income", async (req, res) => {
             SELECT i.*, c.name as category_name, c.color as category_color, c.icon as category_icon
             FROM income i
             LEFT JOIN categories c ON i.category_id = c.id
+            WHERE i.deleted_at IS NULL
             ORDER BY i.date DESC, i.created_at DESC
         `);
         res.json(result.rows);
@@ -347,8 +641,8 @@ app.put("/api/income/:id", async (req, res) => {
 app.delete("/api/income/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query("DELETE FROM income WHERE id = $1", [id]);
-        res.json({ message: "Income deleted successfully" });
+        await pool.query("UPDATE income SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+        res.json({ message: "Income moved to recycle bin" });
     } catch (error) {
         console.error("Error deleting income:", error);
         res.status(500).json({ error: "Failed to delete income" });
@@ -363,6 +657,7 @@ app.get("/api/income/summary", async (req, res) => {
                 COALESCE(SUM(amount), 0) as total_income,
                 COUNT(*) as income_count
             FROM income
+            WHERE deleted_at IS NULL
         `);
         res.json(result.rows[0]);
     } catch (error) {
@@ -379,6 +674,7 @@ app.get("/api/expenses", async (req, res) => {
             SELECT e.*, c.name as category_name, c.color as category_color, c.icon as category_icon
             FROM expenses e
             LEFT JOIN categories c ON e.category_id = c.id
+            WHERE e.deleted_at IS NULL
             ORDER BY e.date DESC, e.created_at DESC
         `);
         res.json(result.rows);
@@ -428,8 +724,8 @@ app.put("/api/expenses/:id", async (req, res) => {
 app.delete("/api/expenses/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query("DELETE FROM expenses WHERE id = $1", [id]);
-        res.json({ message: "Expense deleted successfully" });
+        await pool.query("UPDATE expenses SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+        res.json({ message: "Expense moved to recycle bin" });
     } catch (error) {
         console.error("Error deleting expense:", error);
         res.status(500).json({ error: "Failed to delete expense" });
@@ -444,6 +740,7 @@ app.get("/api/expenses/summary", async (req, res) => {
                 COALESCE(SUM(amount), 0) as total_expenses,
                 COUNT(*) as expense_count
             FROM expenses
+            WHERE deleted_at IS NULL
         `);
         res.json(result.rows[0]);
     } catch (error) {
@@ -457,9 +754,9 @@ app.get("/api/summary", async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT 
-                (SELECT COALESCE(SUM(amount), 0) FROM income) as total_income,
-                (SELECT COALESCE(SUM(amount), 0) FROM expenses) as total_expenses,
-                (SELECT COALESCE(SUM(amount), 0) FROM income) - (SELECT COALESCE(SUM(amount), 0) FROM expenses) as balance
+                (SELECT COALESCE(SUM(amount), 0) FROM income WHERE deleted_at IS NULL) as total_income,
+                (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE deleted_at IS NULL) as total_expenses,
+                (SELECT COALESCE(SUM(amount), 0) FROM income WHERE deleted_at IS NULL) - (SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE deleted_at IS NULL) as balance
         `);
         res.json(result.rows[0]);
     } catch (error) {
@@ -508,6 +805,7 @@ app.get("/api/savings-investments", async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT * FROM savings
+            WHERE deleted_at IS NULL
             ORDER BY date DESC, created_at DESC
         `);
         res.json(result.rows);
@@ -561,11 +859,11 @@ app.put("/api/savings-investments/:id", async (req, res) => {
 app.delete("/api/savings-investments/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query("DELETE FROM savings WHERE id = $1 RETURNING *", [id]);
+        const result = await pool.query("UPDATE savings SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *", [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Savings/Investment not found" });
         }
-        res.json({ message: "Savings/Investment deleted successfully" });
+        res.json({ message: "Savings moved to recycle bin" });
     } catch (error) {
         console.error("Error deleting savings/investment:", error);
         res.status(500).json({ error: "Failed to delete savings/investment" });
@@ -600,6 +898,91 @@ app.post("/api/savings", async (req, res) => {
     } catch (error) {
         console.error("Error creating savings goal:", error);
         res.status(500).json({ error: "Failed to create savings goal" });
+    }
+});
+
+// ============= RECYCLE BIN API =============
+// Get all items in the recycle bin
+app.get("/api/recycle-bin", async (req, res) => {
+    try {
+        const incomeResult = await pool.query(`
+            SELECT i.*, c.name as category_name, c.color as category_color, c.icon as category_icon, 'income' as item_type
+            FROM income i
+            LEFT JOIN categories c ON i.category_id = c.id
+            WHERE i.deleted_at IS NOT NULL
+        `);
+
+        const expenseResult = await pool.query(`
+            SELECT e.*, c.name as category_name, c.color as category_color, c.icon as category_icon, 'expense' as item_type
+            FROM expenses e
+            LEFT JOIN categories c ON e.category_id = c.id
+            WHERE e.deleted_at IS NOT NULL
+        `);
+
+        const savingsResult = await pool.query(`
+            SELECT *, 'savings' as item_type
+            FROM savings
+            WHERE deleted_at IS NOT NULL
+        `);
+
+        const allDeletedItems = [
+            ...incomeResult.rows,
+            ...expenseResult.rows,
+            ...savingsResult.rows
+        ].sort((a, b) => new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime());
+
+        res.json(allDeletedItems);
+    } catch (error) {
+        console.error("Error fetching recycle bin:", error);
+        res.status(500).json({ error: "Failed to fetch recycle bin" });
+    }
+});
+
+// Restore an item from the recycle bin
+app.post("/api/recycle-bin/restore/:type/:id", async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        let query = "";
+
+        if (type === 'income') {
+            query = "UPDATE income SET deleted_at = NULL WHERE id = $1";
+        } else if (type === 'expense') {
+            query = "UPDATE expenses SET deleted_at = NULL WHERE id = $1";
+        } else if (type === 'savings') {
+            query = "UPDATE savings SET deleted_at = NULL WHERE id = $1";
+        } else {
+            return res.status(400).json({ error: "Invalid item type" });
+        }
+
+        await pool.query(query, [id]);
+        res.json({ message: "Item restored successfully" });
+    } catch (error) {
+        console.error("Error restoring item:", error);
+        res.status(500).json({ error: "Failed to restore item" });
+    }
+});
+
+// Permanently delete an item
+app.delete("/api/recycle-bin/purge/:type/:id", async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        let query = "";
+
+        if (type === 'income') {
+            query = "DELETE FROM income WHERE id = $1";
+        } else if (type === 'expense') {
+            query = "DELETE FROM expenses WHERE id = $1";
+        } else if (type === 'savings') {
+            query = "DELETE FROM savings WHERE id = $1";
+        } else {
+            return res.status(400).json({ error: "Invalid item type" });
+        }
+
+        await pool.query(query, [id]);
+        res.json({ message: "Item permanently deleted" });
+    } catch (error) {
+        console.error("Error purging item:", error);
+        res.status(500).json({ error: "Failed to purge item" });
     }
 });
 

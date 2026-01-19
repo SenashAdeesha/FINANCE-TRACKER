@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
 import IncomeExpensesChart from "../components/IncomeExpensesChart";
 import FinancialInsightsModal from "../components/FinancialInsightsModal";
+import { useCurrency } from "../context/CurrencyContext";
 import { FaPiggyBank, FaTimes, FaArrowDown, FaArrowUp, FaChevronDown, FaChartLine, FaExclamationCircle, FaBullseye, FaPlus } from "react-icons/fa";
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -290,7 +291,7 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                           <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
-                          Amount (Rs.)
+                          Amount
                         </label>
                         <input
                           type="number"
@@ -374,7 +375,7 @@ function TransactionModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onC
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                           <div className={`w-1 h-4 bg-gradient-to-b rounded-full ${step === 'income' ? 'from-green-500 to-emerald-600' : 'from-red-500 to-pink-600'}`}></div>
-                          Amount (Rs.)
+                          Amount
                         </label>
                         <input
                           type="number"
@@ -478,6 +479,7 @@ function Dashboard() {
   const [savingsInvestmentsData, setSavingsInvestmentsData] = useState<any[]>([]);
   const [savingsGoalsData, setSavingsGoalsData] = useState<any[]>([]);
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
 
   // Fetch income and expenses data
   useEffect(() => {
@@ -748,7 +750,7 @@ function Dashboard() {
               ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`
               : `(${timePeriod})`}
           </h3>
-          <div className="text-3xl font-bold">Rs. {stats.income.toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(stats.income)}</div>
           <div className="text-xs text-white/80 mt-1">{stats.filteredIncome.length} transactions</div>
         </div>
 
@@ -761,7 +763,7 @@ function Dashboard() {
               ? `(${new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})`
               : `(${timePeriod})`}
           </h3>
-          <div className="text-3xl font-bold">Rs. {stats.expenses.toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(stats.expenses)}</div>
           <div className="text-xs text-white/80 mt-1">{stats.filteredExpenses.length} transactions</div>
         </div>
 
@@ -770,7 +772,7 @@ function Dashboard() {
           className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer hover:scale-105 text-white"
         >
           <h3 className="text-sm text-white/90 mb-2">Savings</h3>
-          <div className="text-3xl font-bold">Rs. {Number(stats.totalSavings || 0).toLocaleString()}</div>
+          <div className="text-3xl font-bold">{formatCurrency(Number(stats.totalSavings || 0))}</div>
           <div className="text-xs text-white/80 mt-1">{savingsInvestmentsData.length} entries</div>
         </div>
       </div>
@@ -847,7 +849,7 @@ function Dashboard() {
                   </div>
                   <div className={`font-bold text-xl ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                    {transaction.amount > 0 ? '+' : ''}Rs. {Math.abs(transaction.amount).toLocaleString()}
+                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
                   </div>
                 </div>
               ))}
@@ -932,7 +934,7 @@ function Dashboard() {
                   <p className="text-sm font-bold text-gray-800">Top Spending</p>
                   <p className="text-sm text-gray-700 mt-2 font-medium">
                     {stats.filteredExpenses.length > 0
-                      ? `Largest expense: ${stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (Rs. ${Number(stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount).toLocaleString()})`
+                      ? `Largest expense: ${stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).description || stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).category_name || 'Expense'} (${formatCurrency(Number(stats.filteredExpenses.reduce((max, e) => Number(e.amount) > Number(max.amount) ? e : max).amount))})`
                       : 'No expenses recorded yet'}
                   </p>
                 </div>
@@ -964,22 +966,22 @@ function Dashboard() {
                 <span className="text-gray-600">Avg. Income</span>
                 <span className="font-semibold text-green-600">
                   {stats.filteredIncome.length > 0
-                    ? `Rs. ${Math.round(stats.income / stats.filteredIncome.length).toLocaleString()}`
-                    : 'Rs. 0'}
+                    ? formatCurrency(Math.round(stats.income / stats.filteredIncome.length))
+                    : formatCurrency(0)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Avg. Expense</span>
                 <span className="font-semibold text-red-600">
                   {stats.filteredExpenses.length > 0
-                    ? `Rs. ${Math.round(stats.expenses / stats.filteredExpenses.length).toLocaleString()}`
-                    : 'Rs. 0'}
+                    ? formatCurrency(Math.round(stats.expenses / stats.filteredExpenses.length))
+                    : formatCurrency(0)}
                 </span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t">
                 <span className="text-gray-600">Net Balance</span>
                 <span className={`font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  Rs. {stats.balance.toLocaleString()}
+                  {formatCurrency(stats.balance)}
                 </span>
               </div>
             </div>

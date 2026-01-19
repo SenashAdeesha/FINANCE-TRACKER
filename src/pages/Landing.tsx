@@ -186,10 +186,16 @@ function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm animate-fade-in">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrollY > 50 
+          ? 'bg-white shadow-lg backdrop-blur-md' 
+          : 'bg-white/90 backdrop-blur-md shadow-sm'
+      } animate-fade-in`}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg">
+            <div className={`w-12 h-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg ${
+              scrollY > 50 ? 'animate-bounce-x' : ''
+            }`}>
               <span className="text-white font-bold text-2xl animate-bounce" style={{ animationDuration: '2s' }}>💰</span>
             </div>
             <span className="text-2xl font-black text-gray-800">Finance Tracker</span>
@@ -211,7 +217,7 @@ function Landing() {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         {/* Animated Background with Money-related elements */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" style={{ transform: `translateY(${scrollY * 0.5}px)` }}>
           {/* Floating coins */}
           {[...Array(8)].map((_, i) => (
             <div
@@ -221,18 +227,20 @@ function Landing() {
                 left: `${(i * 15) + 5}%`,
                 top: `${(i % 3) * 25}%`,
                 animationDelay: `${i * 0.5}s`,
-                animationDuration: `${3 + (i % 3)}s`
+                animationDuration: `${3 + (i % 3)}s`,
+                transform: `translateX(${Math.sin(scrollY * 0.01 + i) * 20}px)`
               }}
             >
-              <div className="text-4xl opacity-20 transform hover:scale-150 hover:opacity-40 transition-all duration-500">
+              <div className="text-4xl opacity-20 transform hover:scale-150 hover:opacity-40 hover:rotate-12 transition-all duration-500 cursor-pointer">
                 {i % 4 === 0 ? '💰' : i % 4 === 1 ? '💵' : i % 4 === 2 ? '💳' : '📊'}
               </div>
             </div>
           ))}
           
           {/* Gradient orbs */}
-          <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-          <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" style={{ animationDelay: '2s', animationDuration: '9s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-pink-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" style={{ animationDelay: '4s', animationDuration: '11s' }}></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -391,6 +399,16 @@ function Landing() {
             </div>
           </div>
         </div>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="flex flex-col items-center gap-2 text-gray-600 hover:text-purple-600 cursor-pointer transition-colors group">
+            <span className="text-sm font-semibold">Scroll to Explore</span>
+            <div className="w-6 h-10 border-2 border-gray-400 group-hover:border-purple-500 rounded-full flex justify-center pt-2 transition-colors">
+              <div className="w-1.5 h-2 bg-gray-400 group-hover:bg-purple-500 rounded-full animate-bounce"></div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Stats Section */}
@@ -418,14 +436,16 @@ function Landing() {
             {stats.map((stat, index) => (
               <div 
                 key={index} 
-                className="text-center text-white transform hover:scale-110 transition-all duration-300 animate-fade-in"
+                className="text-center text-white transform hover:scale-110 transition-all duration-300 animate-fade-in group cursor-pointer"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="flex justify-center mb-3 text-5xl animate-bounce" style={{ animationDuration: '3s', animationDelay: `${index * 0.2}s` }}>
+                <div className="flex justify-center mb-3 text-5xl animate-bounce group-hover:scale-125 transition-transform" style={{ animationDuration: '3s', animationDelay: `${index * 0.2}s` }}>
                   {stat.icon}
                 </div>
-                <div className="text-5xl font-black mb-2">{stat.number}</div>
-                <div className="text-purple-100 font-semibold text-lg">{stat.label}</div>
+                <div className="text-5xl font-black mb-2 group-hover:scale-110 transition-transform">{stat.number}</div>
+                <div className="text-purple-100 font-semibold text-lg group-hover:text-white transition-colors">{stat.label}</div>
+                {/* Decorative circle */}
+                <div className="mx-auto mt-4 w-16 h-1 bg-white/30 rounded-full group-hover:w-24 group-hover:bg-white/50 transition-all"></div>
               </div>
             ))}
           </div>
@@ -433,19 +453,19 @@ function Landing() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white relative overflow-hidden">
+      <section id="features" className="py-24 bg-white relative overflow-hidden" data-animate>
         {/* Background decorations */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 text-9xl">💳</div>
-          <div className="absolute bottom-10 right-10 text-9xl">📊</div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl">💎</div>
+          <div className="absolute top-10 left-10 text-9xl animate-wiggle">💳</div>
+          <div className="absolute bottom-10 right-10 text-9xl animate-wiggle" style={{ animationDelay: '1s' }}>📊</div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl animate-rotate-3d">💎</div>
         </div>
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-20 animate-fade-in">
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
               Everything You Need in{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+              <span className="text-gradient-animate">
                 One Place
               </span>
             </h2>
@@ -454,27 +474,38 @@ function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8" style={{ perspective: '1000px' }}>
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className={`group p-8 rounded-3xl transition-all duration-500 cursor-pointer transform hover:scale-110 animate-scale-in ${
+                className={`group p-8 rounded-3xl transition-all duration-500 cursor-pointer transform hover:scale-110 hover:-translate-y-2 animate-scale-in relative overflow-hidden ${
                   activeFeature === index 
                     ? "bg-white shadow-2xl border-2 border-purple-200" 
                     : "bg-gray-50 hover:shadow-xl"
                 }`}
-                style={{ animationDelay: `${index * 0.1}s` }}
+                style={{ 
+                  animationDelay: `${index * 0.1}s`,
+                  transformStyle: 'preserve-3d'
+                }}
                 onMouseEnter={() => setActiveFeature(index)}
               >
-                <div className={`inline-flex p-5 rounded-2xl mb-6 transition-all duration-500 ${
+                {/* Ripple effect background */}
+                <div className={`absolute inset-0 rounded-3xl transition-all duration-300 ${
+                  activeFeature === index ? 'bg-gradient-to-br from-purple-50 to-pink-50' : ''
+                }`}></div>
+                
+                <div className={`inline-flex p-5 rounded-2xl mb-6 transition-all duration-500 relative z-10 ${
                   activeFeature === index 
                     ? `bg-gradient-to-r ${feature.color} text-white shadow-xl scale-110 animate-glow` 
                     : "bg-white text-purple-600 group-hover:scale-105"
                 }`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed font-medium">{feature.description}</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-purple-600 transition-colors relative z-10">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed font-medium relative z-10">{feature.description}</p>
+                
+                {/* Hover glow effect */}
+                <div className={`absolute -inset-1 bg-gradient-to-r ${feature.color} rounded-3xl opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500 -z-10`}></div>
               </div>
             ))}
           </div>
@@ -482,7 +513,7 @@ function Landing() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-24 bg-gradient-to-br from-purple-50 to-pink-50 relative overflow-hidden">
+      <section id="how-it-works" className="py-24 bg-gradient-to-br from-purple-50 to-pink-50 relative overflow-hidden" data-animate>
         {/* Animated coins */}
         <div className="absolute inset-0">
           {[...Array(10)].map((_, i) => (
@@ -505,7 +536,7 @@ function Landing() {
           <div className="text-center mb-20 animate-fade-in">
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
               How It{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+              <span className="text-gradient-animate">
                 Works
               </span>
             </h2>
@@ -538,17 +569,20 @@ function Landing() {
             ].map((item, index) => (
               <div 
                 key={index}
-                className="relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-scale-in border-2 border-purple-100"
+                className="relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-rotate-1 animate-scale-in border-2 border-purple-100 group"
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-black text-xl shadow-xl animate-bounce" style={{ animationDuration: '3s', animationDelay: `${index * 0.3}s` }}>
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-black text-xl shadow-xl animate-bounce group-hover:scale-110 transition-transform" style={{ animationDuration: '3s', animationDelay: `${index * 0.3}s` }}>
                   {item.step}
                 </div>
-                <div className="text-7xl text-center mb-6 mt-6 animate-float" style={{ animationDelay: `${index * 0.5}s` }}>
+                <div className="text-7xl text-center mb-6 mt-6 animate-float group-hover:scale-110 transition-transform" style={{ animationDelay: `${index * 0.5}s` }}>
                   {item.icon}
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-4 text-center">{item.title}</h3>
+                <h3 className="text-2xl font-black text-gray-900 mb-4 text-center group-hover:text-purple-600 transition-colors">{item.title}</h3>
                 <p className="text-gray-600 text-center leading-relaxed font-medium">{item.description}</p>
+                
+                {/* Hover gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl -z-10"></div>
               </div>
             ))}
           </div>
@@ -567,7 +601,7 @@ function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-white relative overflow-hidden">
+      <section id="pricing" className="py-24 bg-white relative overflow-hidden" data-animate>
         {/* Background gradient orbs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-purple-300 rounded-full filter blur-3xl opacity-20 animate-float"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-300 rounded-full filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
@@ -576,7 +610,7 @@ function Landing() {
           <div className="text-center mb-20 animate-fade-in">
             <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6">
               Simple,{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600">
+              <span className="text-gradient-animate">
                 Transparent
               </span>{" "}
               Pricing
@@ -588,17 +622,22 @@ function Landing() {
             {pricingPlans.map((plan, index) => (
               <div 
                 key={index}
-                className={`relative rounded-3xl p-8 transition-all duration-500 transform hover:scale-105 animate-scale-in ${
+                className={`relative rounded-3xl p-8 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 animate-scale-in group/pricing ${
                   plan.popular 
                     ? "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white shadow-2xl -mt-4 mb-4 border-4 border-white" 
                     : "bg-white shadow-xl hover:shadow-2xl border-2 border-gray-100"
                 }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                {/* Animated border glow for popular plan */}
                 {plan.popular && (
-                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-3xl opacity-75 blur-lg animate-pulse"></div>
+                )}
+                
+                {plan.popular && (
+                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-10">
                     <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-black shadow-xl animate-bounce flex items-center gap-2">
-                      <FaTrophy className="text-lg" /> MOST POPULAR
+                      <FaTrophy className="text-lg animate-spin" style={{ animationDuration: '3s' }} /> MOST POPULAR
                     </div>
                   </div>
                 )}
@@ -643,13 +682,16 @@ function Landing() {
 
                 <Link
                   to="/signup"
-                  className={`block w-full py-4 rounded-2xl font-black text-center transition-all duration-300 transform hover:scale-105 ${
+                  className={`relative block w-full py-4 rounded-2xl font-black text-center transition-all duration-300 transform hover:scale-105 group/btn overflow-hidden z-10 ${
                     plan.popular
                       ? "bg-white text-purple-600 hover:shadow-xl"
                       : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-xl"
                   }`}
                 >
-                  Get Started
+                  <span className="relative z-10">Get Started</span>
+                  {!plan.popular && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                  )}
                 </Link>
               </div>
             ))}
@@ -678,23 +720,36 @@ function Landing() {
           ))}
         </div>
         
+        {/* Animated waves */}
+        <div className="absolute bottom-0 left-0 right-0 opacity-20">
+          <svg className="w-full h-40" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="white" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+              <animate attributeName="d" dur="10s" repeatCount="indefinite"
+                values="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                        M0,160L48,170.7C96,181,192,203,288,192C384,181,480,139,576,133.3C672,128,768,160,864,165.3C960,171,1056,149,1152,133.3C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                        M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+            </path>
+          </svg>
+        </div>
+        
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <div className="animate-scale-in">
-            <h2 className="text-5xl md:text-6xl font-black text-white mb-6">
+            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 neon-glow">
               Ready to Master Your Money?
             </h2>
-            <p className="text-2xl text-purple-100 mb-10 font-medium">
+            <p className="text-2xl text-purple-100 mb-10 font-medium animate-fade-in" style={{ animationDelay: '0.2s' }}>
               Join thousands of users already managing their finances smarter
             </p>
             <Link
               to="/signup"
-              className="inline-flex items-center gap-3 px-12 py-6 bg-white text-purple-600 rounded-2xl font-black text-2xl hover:shadow-2xl transform hover:scale-110 transition-all group relative overflow-hidden"
+              className="inline-flex items-center gap-3 px-12 py-6 bg-white text-purple-600 rounded-2xl font-black text-2xl hover:shadow-2xl transform hover:scale-110 transition-all group relative overflow-hidden animate-pulse-glow"
+              style={{ animationDelay: '0.4s' }}
             >
               <span className="relative z-10">Start Free Today</span>
-              <FaRocket className="relative z-10 text-3xl group-hover:translate-x-2 transition-transform" />
+              <FaRocket className="relative z-10 text-3xl group-hover:translate-x-2 group-hover:-translate-y-1 group-hover:rotate-12 transition-transform" />
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Link>
-            <p className="mt-6 text-purple-100 text-lg font-medium">
+            <p className="mt-6 text-purple-100 text-lg font-medium animate-fade-in" style={{ animationDelay: '0.6s' }}>
               No credit card required • Free forever plan available
             </p>
           </div>
@@ -796,6 +851,17 @@ function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Back to Top Button */}
+      {scrollY > 500 && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center transition-all duration-300 transform hover:scale-110 animate-bounce-x group"
+          aria-label="Back to top"
+        >
+          <FaArrowRight className="rotate-[-90deg] text-xl group-hover:translate-y-[-2px] transition-transform" />
+        </button>
+      )}
     </div>
   );
 }

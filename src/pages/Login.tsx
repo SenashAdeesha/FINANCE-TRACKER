@@ -1,5 +1,5 @@
 // pages/Login.tsx
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaGithub, FaTimes } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -11,12 +11,39 @@ function Login() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [coins, setCoins] = useState<Array<{ id: number; x: number; y: number; delay: number; symbol: string }>>([]);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
+  // Mouse tracking for parallax effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Generate falling coins
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const symbols = ['💰', '💵', '💳', '💎', '🪙', '💸', '📈', '📊'];
+      const newCoin = {
+        id: Date.now(),
+        x: Math.random() * 100,
+        y: -10,
+        delay: Math.random() * 2,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)]
+      };
+      setCoins(prev => [...prev.slice(-20), newCoin]);
+    }, 800);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -58,8 +85,10 @@ function Login() {
     try {
       const response = await fetch("http://localhost:3001/api/auth/forgot-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: forgotPasswordEmail })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
       });
 
       const data = await response.json();
@@ -83,26 +112,56 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background decorative elements */}
+      {/* Animated Financial Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl"></div>
-        <div className="absolute top-20 right-20 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
+        {/* Gradient Orbs */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s', animationDuration: '9s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s', animationDuration: '11s' }}></div>
+        
+        {/* Floating Financial Icons with 3D effect */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-float opacity-20"
+            style={{
+              left: `${(i * 10) + (i % 2) * 5}%`,
+              top: `${(i % 4) * 25}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${4 + (i % 3)}s`,
+              fontSize: `${30 + (i % 3) * 10}px`,
+              transform: `translateX(${mousePos.x * (i % 2 === 0 ? 0.01 : -0.01)}px) translateY(${mousePos.y * (i % 2 === 0 ? 0.01 : -0.01)}px)`
+            }}
+          >
+            <div className="transform hover:scale-150 hover:rotate-12 transition-all duration-500 cursor-pointer animate-wiggle" style={{ animationDelay: `${i * 0.3}s`, animationDuration: '3s' }}>
+              {i % 6 === 0 ? '💰' : i % 6 === 1 ? '💵' : i % 6 === 2 ? '💳' : i % 6 === 3 ? '📊' : i % 6 === 4 ? '💎' : '🪙'}
+            </div>
+          </div>
+        ))}
+        
+        {/* Large Animated Financial Symbols with pulse */}
+        <div className="absolute top-20 right-20 text-6xl animate-bounce opacity-30 animate-pulse-glow" style={{ animationDuration: '3s' }}>💰</div>
+        <div className="absolute bottom-20 left-20 text-5xl animate-float opacity-25 animate-rotate-3d" style={{ animationDelay: '1s', animationDuration: '20s' }}>💵</div>
+        <div className="absolute top-1/4 left-1/4 text-4xl animate-wiggle opacity-20" style={{ animationDelay: '2s' }}>💳</div>
+        <div className="absolute bottom-1/3 right-1/3 text-5xl animate-float opacity-25 animate-expand-contract" style={{ animationDelay: '1.5s' }}>📈</div>
       </div>
 
       <div className="max-w-md w-full relative z-10">
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-2xl mb-4 backdrop-blur-lg shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-500 animate-glow">
-            <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-4xl font-black animate-bounce" style={{ animationDuration: '2s' }}>
+          <div className="inline-block p-4 bg-white bg-opacity-20 rounded-2xl mb-4 backdrop-blur-lg shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-500 animate-pulse-glow relative group">
+            <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden">
+              <span className="text-4xl font-black animate-bounce relative z-10" style={{ animationDuration: '2s' }}>
                 💰
               </span>
+              {/* Sparkle effects */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }}></div>
             </div>
+            {/* Glow ring */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-50 blur-lg transition-all duration-500"></div>
           </div>
-          <h1 className="text-5xl font-black text-white mb-3 tracking-tight drop-shadow-lg animate-slide-in-left">Finance Tracker</h1>
+          <h1 className="text-5xl font-black text-white mb-3 tracking-tight drop-shadow-lg animate-slide-in-left neon-glow">Finance Tracker</h1>
           <p className="text-white text-opacity-95 text-lg font-medium animate-slide-in-right">
             Welcome back! Please login to continue
           </p>

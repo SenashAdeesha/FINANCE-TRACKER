@@ -2,6 +2,7 @@
 import { useState, useEffect, type ChangeEvent, type MouseEvent } from "react";
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaChevronDown, FaPiggyBank, FaChartLine, FaUniversity, FaHome, FaCar, FaGraduationCap, FaUmbrella, FaWallet, FaCoins, FaChartBar, FaBitcoin, FaGem } from "react-icons/fa";
 import PageLayout from "../components/PageLayout";
+import { useCurrency } from "../context/CurrencyContext";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -177,7 +178,7 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
               {/* Form */}
               <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
                     Category
                   </label>
@@ -197,9 +198,9 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
-                      Amount (Rs.)
+                      Amount
                     </label>
                     <input
                       type="number"
@@ -214,7 +215,7 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
                       Date
                     </label>
@@ -243,7 +244,7 @@ function SavingsModal({ isOpen, onClose, onSuccess, editingEntry }: { isOpen: bo
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <div className="w-1 h-4 bg-gradient-to-b from-cyan-500 to-blue-600 rounded-full"></div>
                     Note (optional)
                   </label>
@@ -321,6 +322,7 @@ function Savings() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM format
   const [savingsData, setSavingsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useCurrency();
 
   // Fetch data from API
   useEffect(() => {
@@ -560,7 +562,7 @@ function Savings() {
           ].map((stat, i) => (
             <div key={i} className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-white">
               <h3 className="text-sm text-white/90 mb-2">{stat.label}</h3>
-              <div className="text-3xl font-bold">Rs. {stat.amount.toLocaleString()}</div>
+              <div className="text-3xl font-bold">{formatCurrency(stat.amount)}</div>
               <div className="text-xs text-white/80 mt-1">
                 {i === 0 ? "Combined savings & investments" : (i === 1 ? "↑ 12% from last period" : "↑ 18% from last period")}
               </div>
@@ -660,7 +662,7 @@ function Savings() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className={`text-xl font-bold ${item.type === 'savings' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent' : 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent'}`}>
-                          +Rs. {Number(item.amount).toLocaleString()}
+                          +{formatCurrency(Number(item.amount))}
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => handleEdit(item)} className="p-2 hover:bg-gray-200 rounded">
@@ -708,7 +710,7 @@ function Savings() {
                       </div>
                     </div>
                     <div className="text-right mt-2">
-                      <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-gray-700">{formatCurrency(cat.amount)}</span>
                     </div>
                   </div>
                 );
@@ -738,11 +740,199 @@ function Savings() {
                       </div>
                     </div>
                     <div className="text-right mt-2">
-                      <span className="text-sm font-bold text-gray-700">Rs. {cat.amount.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-gray-700">{formatCurrency(cat.amount)}</span>
                     </div>
                   </div>
                 );
               })}
+            </div>
+
+            {/* Growth Trend Chart */}
+            <div className="mt-8 pt-8 border-t border-white/50">
+              <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <FaChartLine className="text-cyan-600" />
+                Portfolio Growth
+              </h3>
+              {(() => {
+                // Group savings & investments by month with proper date sorting
+                const monthlyMap = new Map<string, { date: Date; savings: number; investment: number; label: string }>();
+                
+                filteredByTime.forEach(item => {
+                  const date = new Date(item.date);
+                  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                  const label = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                  
+                  if (monthlyMap.has(key)) {
+                    const existing = monthlyMap.get(key)!;
+                    existing[item.type as 'savings' | 'investment'] += Number(item.amount);
+                  } else {
+                    monthlyMap.set(key, {
+                      date,
+                      savings: item.type === 'savings' ? Number(item.amount) : 0,
+                      investment: item.type === 'investment' ? Number(item.amount) : 0,
+                      label
+                    });
+                  }
+                });
+                
+                // Sort by date and take last 6 months
+                const sortedEntries = Array.from(monthlyMap.entries())
+                  .sort((a, b) => a[1].date.getTime() - b[1].date.getTime())
+                  .slice(-6);
+                
+                const maxAmount = Math.max(...sortedEntries.map(([_, v]) => v.savings + v.investment), 0);
+                
+                return sortedEntries.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-gray-500 font-medium">
+                        <span className="text-right pr-2">{formatCurrency(maxAmount)}</span>
+                        <span className="text-right pr-2">{formatCurrency(maxAmount * 0.75)}</span>
+                        <span className="text-right pr-2">{formatCurrency(maxAmount * 0.5)}</span>
+                        <span className="text-right pr-2">{formatCurrency(maxAmount * 0.25)}</span>
+                        <span className="text-right pr-2">0</span>
+                      </div>
+                      
+                      {/* Chart area with grid */}
+                      <div className="ml-16 relative">
+                        {/* Horizontal grid lines */}
+                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                          {[0, 25, 50, 75, 100].map((percent) => (
+                            <div key={percent} className="w-full border-t border-gray-200 border-dashed"></div>
+                          ))}
+                        </div>
+                        
+                        {/* Dual line graph */}
+                        <div className="h-48 relative px-2">
+                          <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
+                            {/* Savings line */}
+                            <polyline
+                              points={sortedEntries.map(([key, data], idx) => {
+                                const x = (idx / (sortedEntries.length - 1)) * 100;
+                                const y = 100 - (maxAmount > 0 ? (data.savings / maxAmount) * 100 : 0);
+                                return `${x}%,${y}%`;
+                              }).join(' ')}
+                              fill="none"
+                              stroke="url(#cyanGradient)"
+                              strokeWidth="3"
+                              className="drop-shadow-lg"
+                            />
+                            {/* Investment line */}
+                            <polyline
+                              points={sortedEntries.map(([key, data], idx) => {
+                                const x = (idx / (sortedEntries.length - 1)) * 100;
+                                const y = 100 - (maxAmount > 0 ? (data.investment / maxAmount) * 100 : 0);
+                                return `${x}%,${y}%`;
+                              }).join(' ')}
+                              fill="none"
+                              stroke="url(#blueGradient)"
+                              strokeWidth="3"
+                              className="drop-shadow-lg"
+                              strokeDasharray="5,5"
+                            />
+                            {/* Gradient definitions */}
+                            <defs>
+                              <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style={{ stopColor: '#06b6d4', stopOpacity: 1 }} />
+                                <stop offset="100%" style={{ stopColor: '#0891b2', stopOpacity: 1 }} />
+                              </linearGradient>
+                              <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+                                <stop offset="100%" style={{ stopColor: '#2563eb', stopOpacity: 1 }} />
+                              </linearGradient>
+                            </defs>
+                            {/* Area under savings line */}
+                            <defs>
+                              <linearGradient id="areaCyanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style={{ stopColor: '#06b6d4', stopOpacity: 0.2 }} />
+                                <stop offset="100%" style={{ stopColor: '#06b6d4', stopOpacity: 0.02 }} />
+                              </linearGradient>
+                            </defs>
+                            <polygon
+                              points={`
+                                0%,100% 
+                                ${sortedEntries.map(([key, data], idx) => {
+                                  const x = (idx / (sortedEntries.length - 1)) * 100;
+                                  const y = 100 - (maxAmount > 0 ? (data.savings / maxAmount) * 100 : 0);
+                                  return `${x}%,${y}%`;
+                                }).join(' ')} 
+                                100%,100%
+                              `}
+                              fill="url(#areaCyanGradient)"
+                            />
+                          </svg>
+                          
+                          {/* Data points with tooltips */}
+                          <div className="absolute inset-0 flex justify-between items-end px-2">
+                            {sortedEntries.map(([key, data], idx) => {
+                              const savingsY = maxAmount > 0 ? (data.savings / maxAmount) * 100 : 0;
+                              const investmentY = maxAmount > 0 ? (data.investment / maxAmount) * 100 : 0;
+                              const totalAmt = data.savings + data.investment;
+                              
+                              return (
+                                <div key={key} className="flex-1 flex justify-center relative group" style={{ height: '100%' }}>
+                                  {/* Savings point */}
+                                  {data.savings > 0 && (
+                                    <div className="absolute" style={{ bottom: `${savingsY}%`, transform: 'translateY(50%)' }}>
+                                      <div className="w-3 h-3 bg-cyan-500 border-2 border-white rounded-full shadow-lg cursor-pointer transform transition-all duration-200 group-hover:scale-150 group-hover:bg-cyan-600"></div>
+                                    </div>
+                                  )}
+                                  {/* Investment point */}
+                                  {data.investment > 0 && (
+                                    <div className="absolute" style={{ bottom: `${investmentY}%`, transform: 'translateY(50%)' }}>
+                                      <div className="w-3 h-3 bg-blue-500 border-2 border-white rounded-full shadow-lg cursor-pointer transform transition-all duration-200 group-hover:scale-150 group-hover:bg-blue-600"></div>
+                                    </div>
+                                  )}
+                                  {/* Tooltip */}
+                                  <div className="absolute -top-24 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-gray-800 text-white px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap shadow-xl">
+                                    <div className="font-semibold mb-1">{data.label}</div>
+                                    {data.savings > 0 && <div className="text-cyan-300">💰 Savings: {formatCurrency(data.savings)}</div>}
+                                    {data.investment > 0 && <div className="text-blue-300">📈 Investment: {formatCurrency(data.investment)}</div>}
+                                    <div className="border-t border-gray-600 mt-1 pt-1">Total: {formatCurrency(totalAmt)}</div>
+                                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800"></div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* X-axis labels */}
+                    <div className="ml-16 flex justify-between px-2">
+                      {sortedEntries.map(([key, data]) => (
+                        <div key={key} className="flex-1 text-center">
+                          <span className="text-xs font-semibold text-gray-600">{data.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Legend */}
+                    <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <svg width="20" height="3">
+                          <line x1="0" y1="1.5" x2="20" y2="1.5" stroke="#06b6d4" strokeWidth="3" />
+                        </svg>
+                        <span className="text-xs font-semibold text-gray-700">Savings</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg width="20" height="3">
+                          <line x1="0" y1="1.5" x2="20" y2="1.5" stroke="#3b82f6" strokeWidth="3" strokeDasharray="5,5" />
+                        </svg>
+                        <span className="text-xs font-semibold text-gray-700">Investments</span>
+                      </div>
+                    </div>
+                    <div className="text-center text-xs text-gray-500 mt-2 italic">Dual trend view • Showing last {sortedEntries.length} months • Hover for details</div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    <div className="mb-2">📊 No data to display</div>
+                    <div className="text-xs">Add savings or investment entries to see the trend chart</div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
